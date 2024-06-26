@@ -61,10 +61,9 @@
             padding: 10px;
         }
 
-        .description {
-            font-weight: bold;
-            font-size: 16px;
-            margin-bottom: 10px;
+        #treeCanvas {
+            border: 1px solid black;
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -80,7 +79,7 @@
         <!-- Nav -->
         <nav id="nav">
             <ul class="links">
-                <li><a href="index.html">소개 | Introducion</a></li>
+                <li><a href="index.html">소개 | Introduction</a></li>
                 <li><a href="rosua.html">개념 | RIP</a></li>
                 <li><a href="algo.html">알고리즘 | Algorithm</a></li>
                 <li class="active"><a href="imple.html">시뮬레이터 | Simulator</a></li>
@@ -91,230 +90,277 @@
         <div id="main">
             <!-- Post -->
             <h2>시뮬레이터</h2>
-            <body>
 
-                <h5>
-                    갱신 과정 설명<br><br>
-                     1. 초기에는 모든 노드의 거리를 무한대 (∞)로 설정됩니다.<br> 
-                     2. 선택한 루트 노드의 거리를 0으로 설정됩니다. <br>
-                     3. 아직 방문하지 않은 노드 중에서 가장 짧은 거리의 노드를 선택합니다.<br>
-                     4. 선택한 노드를 통해 다른 노드로 가는 거리를 계산하고, 더 짧은 거리를 찾으면 업데이트합니다. <br>
-                     5. 모든 노드를 방문할 때까지 3단계로 돌아가 반복합니다. <br>
-                     6. 최단 거리와 최단 경로를 계산합니다. 
-                </h5>
+            <h5>갱신 과정 설명<br><br>
+                1. 초기에는 모든 노드의 거리를 무한대 (∞)로 설정됩니다.<br>
+                2. 선택한 루트 노드의 거리를 0으로 설정됩니다. <br>
+                3. 아직 방문하지 않은 노드 중에서 가장 짧은 거리의 노드를 선택합니다.<br>
+                4. 선택한 노드를 통해 다른 노드로 가는 거리를 계산하고, 더 짧은 거리를 찾으면 업데이트합니다. <br>
+                5. 모든 노드를 방문할 때까지 3단계로 돌아가 반복합니다. <br>
+                6. 최단 거리와 최단 경로를 계산합니다.
+            </h5>
 
-                <label for="arrayCount">만들고 싶은 노드의 개수
-                    <input type="number" id="arrayCount" placeholder="1,2,3..">
-                    <button onclick="createArrays()">Go</button>
-                </label>
+            <label for="arrayCount">만들고 싶은 노드의 개수
+                <input type="number" id="arrayCount" placeholder="1,2,3..">
+                <button onclick="createArrays()">Go</button>
+            </label>
 
-                <div id="arraysContainer"></div>
+            <div id="arraysContainer"></div>
 
-                <label for="arrayName">루트 노드 선택
-                    <input type="text" id="arrayName" placeholder="A,B,C..">
-                    <button onclick="runDijkstra()">Go</button>
-                </label>
+            <label for="arrayName">루트 노드 선택
+                <input type="text" id="arrayName" placeholder="A,B,C..">
+                <button onclick="runDijkstra()">Go</button>
+            </label>
 
-                <div id="result"></div>
-                <div id="matrix-container"></div>
-                <div id="new-matrix-container"></div>
-                <div id="description-container"></div>
+            <div id="result"></div>
+            <div id="matrix-container"></div>
+            <div id="new-matrix-container"></div>
+            <div id="description-container"></div>
+            <canvas id="treeCanvas" width="1000" height="500"></canvas>
 
-                <script>
-                    let graph = {};
-                    let arrayCount = 0;
+            <script>
+                let graph = {};
+                let arrayCount = 0;
 
-                    // 다익스트라 결과를 배열로 변환하는 함수
-                    function distancesToArray(distances) {
-                        const resultArray = [];
+                function distancesToArray(distances) {
+                    const resultArray = [];
 
-                        for (const vertex in distances) {
-                            resultArray.push([vertex, distances[vertex]]);
-                        }
-
-                        return resultArray;
+                    for (const vertex in distances) {
+                        resultArray.push([vertex, distances[vertex]]);
                     }
 
-                    function createArrays() {
-                        arrayCount = parseInt(document.getElementById('arrayCount').value);
-                        graph = {};
-                        const arraysContainer = document.getElementById('arraysContainer');
-                        arraysContainer.innerHTML = '';
+                    return resultArray;
+                }
 
-                        for (let i = 0; i < arrayCount; i++) {
-                            const arrayName = String.fromCharCode(65 + i);
-                            const arrayElement = document.createElement('div');
-                            arrayElement.className = 'array';
+                function createArrays() {
+                    arrayCount = parseInt(document.getElementById('arrayCount').value);
+                    graph = {};
+                    const arraysContainer = document.getElementById('arraysContainer');
+                    arraysContainer.innerHTML = '';
 
-                            const arrayLabel = document.createElement('p');
-                            arrayLabel.textContent = arrayName;
+                    for (let i = 0; i < arrayCount; i++) {
+                        const arrayName = String.fromCharCode(65 + i);
+                        const arrayElement = document.createElement('div');
+                        arrayElement.className = 'array';
 
-                            const arrayMatrix = document.createElement('table');
-                            arrayMatrix.className = 'array-matrix';
-                            const row = document.createElement('tr');
-                            for (let j = 0; j < arrayCount; j++) {
-                                const cell = document.createElement('td');
-                                const input = document.createElement('input');
-                                input.type = 'text';
-                                input.id = `array-${arrayName}-${String.fromCharCode(65 + j)}`;
-                                if (j === i) {
-                                    input.value = '0'; // 해당 열에 대한 값은 0으로 고정
-                                    input.readOnly = true; // 읽기 전용 설정
-                                } else {
-                                    input.value = '∞';
-                                }
-                                cell.appendChild(input);
-                                row.appendChild(cell);
-                            }
-                            arrayMatrix.appendChild(row);
+                        const arrayLabel = document.createElement('p');
+                        arrayLabel.textContent = arrayName;
 
-                            arrayElement.appendChild(arrayLabel);
-                            arrayElement.appendChild(arrayMatrix);
-                            arraysContainer.appendChild(arrayElement);
-
-                            graph[arrayName] = {};
-                        }
-                    }
-
-                    function runDijkstra() {
-                        const arrayNameInput = document.getElementById('arrayName');
-
-                        if (!arrayNameInput) {
-                            alert("배열 이름 입력 요소를 찾을 수 없습니다.");
-                            return;
-                        }
-
-                        const selectedArrayName = arrayNameInput.value.toUpperCase();
-
-                        if (!(selectedArrayName in graph)) {
-                            alert("유효한 배열 이름을 입력하세요.");
-                            return;
-                        }
-
-                        for (let i = 0; i < arrayCount; i++) {
-                            const sourceArrayName = String.fromCharCode(65 + i);
-                            for (let j = 0; j < arrayCount; j++) {
-                                const targetArrayName = String.fromCharCode(65 + j);
-                                const inputElement = document.querySelector(`#array-${sourceArrayName}-${targetArrayName}`);
-
-                                if (!inputElement) {
-                                    alert(`배열 ${sourceArrayName}의 입력 요소를 찾을 수 없습니다.`);
-                                    return;
-                                }
-
-                                const inputValue = inputElement.value;
-                                const value = inputValue === '∞' ? Infinity : parseInt(inputValue);
-                                graph[sourceArrayName][targetArrayName] = value;
-                            }
-                        }
-
-                        const { distances, path } = dijkstra(graph, selectedArrayName);
-
-                        console.log(`${selectedArrayName} 노드의 최단 거리 결과`, distances);
-
-                        const matrixContainer = document.getElementById('matrix-container');
-                        const selectedArray = graph[selectedArrayName];
-                        const matrixTable = document.createElement('table');
-                        const matrixRow = document.createElement('tr');
-                        for (const targetArrayName in selectedArray) {
+                        const arrayMatrix = document.createElement('table');
+                        arrayMatrix.className = 'array-matrix';
+                        const row = document.createElement('tr');
+                        for (let j = 0; j < arrayCount; j++) {
                             const cell = document.createElement('td');
-                            cell.textContent = selectedArray[targetArrayName] === Infinity ? '∞' : selectedArray[targetArrayName];
-                            matrixRow.appendChild(cell);
+                            const input = document.createElement('input');
+                            input.type = 'text';
+                            input.id = `array-${arrayName}-${String.fromCharCode(65 + j)}`;
+                            if (j === i) {
+                                input.value = '0';
+                                input.readOnly = true;
+                            } else {
+                                input.value = '∞';
+                            }
+                            cell.appendChild(input);
+                            row.appendChild(cell);
                         }
-                        matrixTable.appendChild(matrixRow);
-                        matrixContainer.innerHTML = `<h3>ORIGINAL "${selectedArrayName}"</h3>`;
-                        matrixContainer.appendChild(matrixTable);
+                        arrayMatrix.appendChild(row);
 
-                        // 이제 NEW 배열을 만들어 최단 거리 결과를 표시합니다.
-                        const { distances: newDistances, path: newPath } = dijkstra(graph, selectedArrayName);
+                        arrayElement.appendChild(arrayLabel);
+                        arrayElement.appendChild(arrayMatrix);
+                        arraysContainer.appendChild(arrayElement);
 
-                        const newMatrixContainer = document.getElementById('new-matrix-container');
-                        const newMatrixTable = document.createElement('table');
-                        const newMatrixRow = document.createElement('tr');
-                        for (const targetArrayName in newDistances) {
-                            const cell = document.createElement('td');
-                            cell.textContent = newDistances[targetArrayName] === Infinity ? '∞' : `${newDistances[targetArrayName]} (${getPathInfo(targetArrayName, newPath)})`;
-                            newMatrixRow.appendChild(cell);
-                        }
-                        newMatrixTable.appendChild(newMatrixRow);
-                        newMatrixContainer.innerHTML = `<h3>NEW "${selectedArrayName}"</h3>`;
-                        newMatrixContainer.appendChild(newMatrixTable);
+                        graph[arrayName] = {};
+                    }
+                }
 
-                        // 배열 아래에 설명을 추가
-                        const descriptionText = getPathInfo(selectedArrayName, newPath);
-                        
-                        const descriptionContainer = document.getElementById('description-container');
-                        
+                function runDijkstra() {
+                    const arrayNameInput = document.getElementById('arrayName');
+
+                    if (!arrayNameInput) {
+                        alert("배열 이름 입력 요소를 찾을 수 없습니다.");
+                        return;
                     }
 
-                    function dijkstra(graph, start) {
-                        const dist = {};
-                        const path = {};
-                        const visited = {};
+                    const selectedArrayName = arrayNameInput.value.toUpperCase();
 
-                        for (const vertex in graph) {
-                            dist[vertex] = Infinity;
-                            path[vertex] = null;
-                            visited[vertex] = false;
+                    if (!(selectedArrayName in graph)) {
+                        alert("유효한 배열 이름을 입력하세요.");
+                        return;
+                    }
+
+                    for (let i = 0; i < arrayCount; i++) {
+                        const sourceArrayName = String.fromCharCode(65 + i);
+                        for (let j = 0; j < arrayCount; j++) {
+                            const targetArrayName = String.fromCharCode(65 + j);
+                            const inputElement = document.querySelector(`#array-${sourceArrayName}-${targetArrayName}`);
+
+                            if (!inputElement) {
+                                alert(`배열 ${sourceArrayName}의 입력 요소를 찾을 수 없습니다.`);
+                                return;
+                            }
+
+                            const inputValue = inputElement.value;
+                            const value = inputValue === '∞' ? Infinity : parseInt(inputValue);
+                            graph[sourceArrayName][targetArrayName] = value;
                         }
+                    }
 
-                        dist[start] = 0;
+                    const { distances, path } = dijkstra(graph, selectedArrayName);
 
-                        for (let i = 0; i < arrayCount - 1; i++) {
-                            const u = findMinDistVertex(dist, visited);
-                            visited[u] = true;
+                    console.log(`${selectedArrayName} 노드의 최단 거리 결과`, distances);
 
-                            for (const v in graph[u]) {
-                                if (!visited[v] && dist[u] + graph[u][v] < dist[v]) {
-                                    dist[v] = dist[u] + graph[u][v];
-                                    path[v] = u;
-                                }
+                    const matrixContainer = document.getElementById('matrix-container');
+                    const selectedArray = graph[selectedArrayName];
+                    const matrixTable = document.createElement('table');
+                    const matrixRow = document.createElement('tr');
+                    for (const targetArrayName in selectedArray) {
+                        const cell = document.createElement('td');
+                        cell.textContent = selectedArray[targetArrayName] === Infinity ? '∞' : selectedArray[targetArrayName];
+                        matrixRow.appendChild(cell);
+                    }
+                    matrixTable.appendChild(matrixRow);
+                    matrixContainer.innerHTML = `<h3>ORIGINAL "${selectedArrayName}"</h3>`;
+                    matrixContainer.appendChild(matrixTable);
+
+                    const { distances: newDistances, path: newPath } = dijkstra(graph, selectedArrayName);
+
+                    const newMatrixContainer = document.getElementById('new-matrix-container');
+                    const newMatrixTable = document.createElement('table');
+                    const newMatrixRow = document.createElement('tr');
+                    for (const targetArrayName in newDistances) {
+                        const cell = document.createElement('td');
+                        cell.textContent = newDistances[targetArrayName] === Infinity ? '∞' : `${newDistances[targetArrayName]} (${getPathInfo(targetArrayName, newPath)})`;
+                        newMatrixRow.appendChild(cell);
+                    }
+                    newMatrixTable.appendChild(newMatrixRow);
+                    newMatrixContainer.innerHTML = `<h3>NEW "${selectedArrayName}"</h3>`;
+                    newMatrixContainer.appendChild(newMatrixTable);
+
+                    const descriptionText = getPathInfo(selectedArrayName, newPath);
+                    const descriptionContainer = document.getElementById('description-container');
+
+                    drawTree(newPath, newDistances, selectedArrayName);
+                }
+
+                function dijkstra(graph, start) {
+                    const dist = {};
+                    const path = {};
+                    const visited = {};
+
+                    for (const vertex in graph) {
+                        dist[vertex] = Infinity;
+                        path[vertex] = null;
+                        visited[vertex] = false;
+                    }
+
+                    dist[start] = 0;
+
+                    for (let i = 0; i < arrayCount - 1; i++) {
+                        const u = findMinDistVertex(dist, visited);
+                        visited[u] = true;
+
+                        for (const v in graph[u]) {
+                            if (!visited[v] && dist[u] + graph[u][v] < dist[v]) {
+                                dist[v] = dist[u] + graph[u][v];
+                                path[v] = u;
                             }
                         }
-
-                        return { distances: dist, path };
                     }
 
-                    function findMinDistVertex(dist, visited) {
-                        let minDist = Infinity;
-                        let minVertex = null;
+                    return { distances: dist, path };
+                }
 
-                        for (const vertex in dist) {
-                            if (!visited[vertex] && dist[vertex] < minDist) {
-                                minDist = dist[vertex];
-                                minVertex = vertex;
-                            }
+                function findMinDistVertex(dist, visited) {
+                    let minDist = Infinity;
+                    let minVertex = null;
+
+                    for (const vertex in dist) {
+                        if (!visited[vertex] && dist[vertex] < minDist) {
+                            minDist = dist[vertex];
+                            minVertex = vertex;
                         }
-
-                        return minVertex;
                     }
 
-                    // 경로 정보를 생성하는 함수
-              function getPathInfo(vertex, path) {
-                  if (path[vertex] === null) {
-                      return `${vertex}->${vertex}`;
-                  }
-      
-                  let current = vertex;
-                  let pathString = '';
-      
-                  while (path[current] !== null) {
-                      pathString = `+${current}` + pathString;
-                      current = path[current];
-                  }
-      
-                  return `${vertex}->${current}${pathString}`;
-              }
-                </script>
-            </body>
+                    return minVertex;
+                }
+
+                function getPathInfo(vertex, path) {
+                    if (path[vertex] === null) {
+                        return `${vertex}->${vertex}`;
+                    }
+
+                    let current = vertex;
+                    let pathString = '';
+
+                    while (path[current] !== null) {
+                        pathString = `+${current}` + pathString;
+                        current = path[current];
+                    }
+
+                    return `${vertex}->${current}${pathString}`;
+                }
+
+                function drawTree(path, distances, root) {
+                    const canvas = document.getElementById('treeCanvas');
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    const nodeRadius = 20;
+                    const positions = calculateNodePositions(Object.keys(path), canvas.width, canvas.height, nodeRadius);
+
+                    ctx.font = '16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+
+                    for (const node in path) {
+                        if (path[node] !== null) {
+                            ctx.beginPath();
+                            ctx.moveTo(positions[node].x, positions[node].y);
+                            ctx.lineTo(positions[path[node]].x, positions[path[node]].y);
+                            ctx.stroke();
+                            const midX = (positions[node].x + positions[path[node]].x) / 2;
+                            const midY = (positions[node].y + positions[path[node]].y) / 2;
+                            ctx.fillText(distances[node], midX, midY - 10);
+                        }
+                    }
+
+                    for (const node in positions) {
+                        ctx.beginPath();
+                        ctx.arc(positions[node].x, positions[node].y, nodeRadius, 0, 2 * Math.PI);
+                        ctx.fillStyle = node === root ? 'red' : 'white';
+                        ctx.fill();
+                        ctx.stroke();
+                        ctx.fillStyle = 'black';
+                        ctx.fillText(node, positions[node].x, positions[node].y);
+                    }
+                }
+
+                function calculateNodePositions(nodes, canvasWidth, canvasHeight, nodeRadius) {
+                    const positions = {};
+                    const centerX = canvasWidth / 2;
+                    const centerY = canvasHeight / 2;
+                    const radius = Math.min(centerX, centerY) - nodeRadius * 2;
+
+                    for (let i = 0; i < nodes.length; i++) {
+                        const angle = (i / nodes.length) * 2 * Math.PI;
+                        positions[nodes[i]] = {
+                            x: centerX + radius * Math.cos(angle),
+                            y: centerY + radius * Math.sin(angle)
+                        };
+                    }
+
+                    return positions;
+                }
+            </script>
         </div>
 
         <!-- Footer -->
         <footer id="footer">
-
-        </ul>
-        </section>
-        </section>
+            <section>
+                <ul>
+                    <!-- 여기에 추가할 내용을 삽입하세요 -->
+                </ul>
+            </section>
         </footer>
 
         <!-- Copyright -->
