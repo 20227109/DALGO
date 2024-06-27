@@ -3574,6 +3574,15 @@ input, select, textarea {
 			padding: 1rem 1.75rem;
 			text-transform: uppercase;
 			visibility: visible;
+			border-radius: 50%; /* 타원 모양을 위해 테두리 반경 설정 */
+			display: inline-flex; /* 가운데 정렬을 위해 flexbox 사용 */
+			justify-content: center; /* 가운데 정렬 */
+			align-items: center; /* 가운데 정렬 */
+			width: 200px; /* 필요에 따라 너비 조정 */
+			height: 100px; /* 필요에 따라 높이 조정 */
+			text-decoration: none; /* 링크 밑줄 제거 */
+			color: #fff; /* 텍스트 색상 */
+			background-color: #ffffff00; /* 배경 색상 */
 		}
 
 			#header .logo:hover {
