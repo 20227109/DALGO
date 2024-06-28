@@ -59,6 +59,12 @@
             display: block;
             margin-top: 10px;
         }
+
+        h3.comment-title {
+            font-size: 35px; /* 제목과 같은 크기로 조정 */
+            margin: 0;
+            color: black;
+        }
     </style>
 </head>
 <body>
@@ -101,18 +107,15 @@
                     </tbody>
                 </table>
                 <button id="lastPostWriteButton">글쓰기</button>
-                <button id="selectButton">선택</button>
-                <button id="deleteButton">선택 삭제</button>
                 <button id="clearButton">전체 삭제</button>
             </dl>
 
-            <!-- 글쓰기 모달 창 -->
             <div id="writeModal" class="modal">
                 <div class="modal-content">
                     <span class="close">&times;</span>
                     <h2>글쓰기</h2>
                     <form id="writeForm">
-                        <label for="title">제목:</label>
+                        <label for="title">[제목]:</label>
                         <input type="text" id="title" name="title"><br><br>
                         <label for="author">작성자:</label>
                         <input type="text" id="author" name="author"><br><br>
@@ -134,7 +137,7 @@
                     <p id="detailDate"></p>
                     <div id="detailContent" class="comment-container"></div>
                     <div id="commentSection" class="comment">
-                         <h3>댓글</h3> 
+                        <h3 class="comment-title">[댓글]</h3>
                         <div id="commentList"></div>
                         <form id="commentForm">
                             <label for="commentAuthor">작성자:</label>
@@ -234,200 +237,129 @@
                     writeModal.style.display = "none";
                 };
 
-                // 글 목록 테이블에 추가
+                // 글 목록 테이블 추가
                 function addPostToTable(post) {
-                    var tableBody = document.getElementById("postTableBody");
-                    var row = tableBody.insertRow();
+                var tableBody = document.getElementById("postTableBody");
+                var newRow = document.createElement("tr");
+                newRow.classList.add("post-row");
+                newRow.innerHTML = `
+                <td class="num">${posts.length}</td>
+                <td class="title"><a href="#">${post.title}</a></td>
+                <td>${post.author}</td>
+                <td>${post.date}</td>
+                 `;
 
-                    var cell0 = row.insertCell(0);
-                    var cell1 = row.insertCell(1);
-                    var cell2 = row.insertCell(2);
-                    var cell3 = row.insertCell(3);
-
-                    cell0.innerHTML = tableBody.rows.length;
-                    cell1.innerHTML = post.title;
-                    cell2.innerHTML = post.author;
-                    cell3.innerHTML = post.date;
-
-                    row.onclick = function() {
-                        openDetailModal(post);
+                    // 글 제목 클릭 시 상세 보기 모달 열기
+                    newRow.querySelector(".title a").onclick = function(event) {
+                        event.preventDefault();
+                        showDetailModal(post);
                     };
+
+                    tableBody.appendChild(newRow);
                 }
 
-                // 상세 보기 모달 창 열기 함수
-                function openDetailModal(post) {
-                    var detailTitle = document.getElementById("detailTitle");
-                    var detailAuthor = document.getElementById("detailAuthor");
-                    var detailDate = document.getElementById("detailDate");
-                    var detailContent = document.getElementById("detailContent");
-                    var commentList = document.getElementById("commentList");
-                    var commentForm = document.getElementById("commentForm");
-                    var commentSubmitButton = document.getElementById("commentSubmitButton");
-
-                    detailTitle.textContent = "제목: " + post.title;
-                    detailAuthor.textContent = "작성자: " + post.author;
-                    detailDate.textContent = "작성일자: " + post.date;
-                    detailContent.innerHTML = "내용: " + post.content;
-
-                    // 첨부파일 보기 버튼 추가
-                    if (post.imageUrl) {
-                        var attachmentButton = document.createElement('button');
-                        attachmentButton.textContent = "첨부파일 보기";
-                        attachmentButton.onclick = function() {
-                            openAttachmentModal(post.imageUrl, post.imageName);
-                        };
-                        detailContent.appendChild(attachmentButton);
-                    }
-
-                    // 댓글 초기화
-                    commentList.innerHTML = "";
-                    commentForm.reset();
-
-                    // 댓글 추가
-                    post.comments.forEach(function(comment) {
-                        var commentDiv = document.createElement('div');
-                        commentDiv.classList.add("comment-container");
-                        commentDiv.innerHTML = "<strong>" + comment.author + "</strong>: " + comment.text + " (" + comment.date + ")<br><br>";
-
-                        // 첨부파일 보기 버튼 추가
-                        if (comment.imageUrl) {
-                            var attachmentButton = document.createElement('button');
-                            attachmentButton.textContent = "첨부파일 보기";
-                            attachmentButton.onclick = function() {
-                                openAttachmentModal(comment.imageUrl, comment.imageName);
-                            };
-                            commentDiv.appendChild(attachmentButton);
-                        }
-
-                      
-                        
-                        commentList.appendChild(commentDiv);
-                        // 대댓글 추가
-                        comment.replies.forEach(function(reply) {
-                            var replyDiv = document.createElement('div');
-                            replyDiv.classList.add("comment-container", "reply");
-                            replyDiv.innerHTML = "<strong>" + reply.author + "</strong>: " + reply.text + " (" + reply.date + ")<br><br>";
-                            commentDiv.appendChild(replyDiv);
-                        });
-                    });
-
-                    // 댓글 등록 이벤트
-                    commentSubmitButton.onclick = function() {
-                        var commentAuthor = document.getElementById("commentAuthor").value;
-                        var commentText = document.getElementById("commentText").value;
-                        var commentImageFile = document.getElementById("commentImage").files[0];
-                        var commentImageUrl = commentImageFile ? URL.createObjectURL(commentImageFile) : "";
-                        var commentImageName = commentImageFile ? commentImageFile.name : "";
-
-                        if (commentAuthor.trim() === "" || commentText.trim() === "") {
-                            alert("댓글 작성자와 내용을 입력해주세요.");
-                            return;
-                        }
-
-                        var newComment = {
-                            author: commentAuthor,
-                            text: commentText,
-                            imageUrl: commentImageUrl,
-                            imageName: commentImageName,
-                            date: new Date().toLocaleString(),
-                            replies: []
-                        };
-
-                        post.comments.push(newComment);
-                        localStorage.setItem('posts', JSON.stringify(posts));
-
-                        // 댓글 목록 업데이트
-                        commentList.innerHTML = "";
-                        post.comments.forEach(function(comment) {
-                            var commentDiv = document.createElement('div');
-                            commentDiv.classList.add("comment-container");
-                            commentDiv.innerHTML = "<strong>" + comment.author + "</strong>: " + comment.text + " (" + comment.date + ")<br><br>";
-
-                            // 첨부파일 보기 버튼 추가
-                            if (comment.imageUrl) {
-                                var attachmentButton = document.createElement('button');
-                                attachmentButton.textContent = "첨부파일 보기";
-                                attachmentButton.onclick = function() {
-                                    openAttachmentModal(comment.imageUrl, comment.imageName);
-                                };
-                                commentDiv.appendChild(attachmentButton);
-                            }
-                            
-                            commentList.appendChild(commentDiv);
-                            // 대댓글 추가
-                            comment.replies.forEach(function(reply) {
-                                var replyDiv = document.createElement('div');
-                                replyDiv.classList.add("comment-container", "reply");
-                                replyDiv.innerHTML = "<strong>" + reply.author + "</strong>: " + reply.text + " (" + reply.date + ")<br><br>";
-                                commentDiv.appendChild(replyDiv);
-                            });
-                        });
-
-                        // 폼 리셋
-                        commentForm.reset();
-                    };
-
-                    // 모달 창 열기
+                // 상세 보기 모달에 글 내용 표시
+                function showDetailModal(post) {
+                    document.getElementById("detailTitle").textContent = `[제목]: ${post.title}`;
+                    document.getElementById("detailAuthor").textContent = `작성자: ${post.author}`;
+                    document.getElementById("detailDate").textContent = `작성일자: ${post.date}`;
+                    document.getElementById("detailContent").innerHTML = `내용: ${post.content}
+                        ${post.imageUrl ? `<img src="${post.imageUrl}" alt="${post.imageName}" class="attachment">` : ""}
+                    `;
                     detailModal.style.display = "block";
+                    loadComments(post);
                 }
 
-                // 첨부파일 보기 모달 창 열기 함수
-                function openAttachmentModal(imageUrl, imageName) {
-                    var attachmentContent = document.getElementById("attachmentContent");
-                    attachmentContent.innerHTML = "<img src='" + imageUrl + "' alt='" + imageName + "' style='max-width: 100%;'><br><br>" + imageName;
-                    attachmentModal.style.display = "block";
-                }
-
-                // 선택 삭제 기능
-                var selectButton = document.getElementById("selectButton");
-                var deleteButton = document.getElementById("deleteButton");
-                var clearButton = document.getElementById("clearButton");
-
-                selectButton.onclick = function() {
-                    var tableBody = document.getElementById("postTableBody");
-                    var rows = tableBody.getElementsByTagName("tr");
-
-                    Array.from(rows).forEach(function(row) {
-                        var checkbox = document.createElement("input");
-                        checkbox.type = "checkbox";
-                        checkbox.classList.add("rowCheckbox");
-                        row.insertBefore(checkbox, row.firstChild);
-
-                        checkbox.onclick = function() {
-                            row.classList.toggle("selected-row", checkbox.checked);
-                        };
-                    });
-                };
-
-                deleteButton.onclick = function() {
-                    var tableBody = document.getElementById("postTableBody");
-                    var checkboxes = tableBody.getElementsByClassName("rowCheckbox");
-
-                    for (var i = checkboxes.length - 1; i >= 0; i--) {
-                        if (checkboxes[i].checked) {
-                            posts.splice(i, 1);
-                            tableBody.deleteRow(i);
-                        }
-                    }
-
-                    localStorage.setItem('posts', JSON.stringify(posts));
-
-                    // 삭제 후 체크박스 제거
-                    var rows = tableBody.getElementsByTagName("tr");
-                    Array.from(rows).forEach(function(row) {
-                        if (row.firstChild.firstChild && row.firstChild.firstChild.type === "checkbox") {
-                            row.removeChild(row.firstChild);
-                        }
-                    });
-                };
-
-                // 전체 삭제 기능
-                clearButton.onclick = function() {
+                // 글 목록 초기화
+                function clearPosts() {
                     posts = [];
                     localStorage.setItem('posts', JSON.stringify(posts));
                     var tableBody = document.getElementById("postTableBody");
-                    tableBody.innerHTML = "";
+                    while (tableBody.firstChild) {
+                        tableBody.removeChild(tableBody.firstChild);
+                    }
+                }
+
+                // 댓글 작성 폼 제출
+                var commentSubmitBtn = document.getElementById("commentSubmitButton");
+                commentSubmitBtn.onclick = function() {
+                    var commentAuthor = document.getElementById("commentAuthor").value;
+                    var commentText = document.getElementById("commentText").value;
+
+                    // 이미지 처리
+                    var commentImageFile = document.getElementById("commentImage").files[0];
+                    var commentImageUrl = commentImageFile ? URL.createObjectURL(commentImageFile) : "";
+                    var commentImageName = commentImageFile ? commentImageFile.name : "";
+
+                    var comment = {
+                        author: commentAuthor,
+                        text: commentText,
+                        imageUrl: commentImageUrl,
+                        imageName: commentImageName
+                    };
+
+                    // 현재 보고 있는 글에 댓글 추가
+                    var postTitle = document.getElementById("detailTitle").textContent.replace('[제목]: ', '');
+                    var post = posts.find(p => p.title === postTitle);
+                    if (post) {
+                        post.comments.push(comment);
+                        localStorage.setItem('posts', JSON.stringify(posts));
+                        loadComments(post);
+                    }
+
+                    // 댓글 작성 폼 초기화
+                    document.getElementById("commentForm").reset();
                 };
+
+// 댓글 목록 로드
+function loadComments(post) {
+    var commentList = document.getElementById("commentList");
+    commentList.innerHTML = ""; // 기존 댓글 초기화
+
+    post.comments.forEach(comment => {
+        var commentDiv = document.createElement("div");
+        commentDiv.classList.add("comment-container");
+
+        // 작성자와 내용 출력
+        var authorParagraph = document.createElement("p");
+        authorParagraph.innerHTML = `<strong>작성자:</strong> ${comment.author}`;
+
+        var textParagraph = document.createElement("p");
+        textParagraph.innerHTML = `<strong>내용:</strong> ${comment.text}`;
+
+        commentDiv.appendChild(authorParagraph);
+        commentDiv.appendChild(textParagraph);
+
+        // 이미지가 있는 경우 추가
+        if (comment.imageUrl) {
+            var image = document.createElement("img");
+            image.src = comment.imageUrl;
+            image.alt = comment.imageName;
+            image.classList.add("attachment");
+            commentDiv.appendChild(image);
+        }
+
+        // 댓글 사이에 구분선을 넣기 위해 hr 요소 추가
+        var separator = document.createElement("hr");
+        commentDiv.appendChild(separator);
+
+        commentList.appendChild(commentDiv);
+    });
+}
+
+                // 초기 데이터 로드
+                window.onload = function() {
+                    posts.forEach(post => {
+                        addPostToTable(post);
+                    });
+                };
+
+                // 전체 삭제 버튼
+                var clearButton = document.getElementById("clearButton");
+                clearButton.onclick = function() {
+                    clearPosts();
+                };
+
 
                 // 초기화 함수 호출
                 function initializeExampleData() {
