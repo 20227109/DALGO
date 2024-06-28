@@ -27,6 +27,7 @@
             padding: 20px;
             border: 1px solid #888;
             width: 80%;
+            word-wrap: break-word; /* 긴 단어도 잘리도록 설정 */
         }
 
         .close {
@@ -64,6 +65,10 @@
             font-size: 35px; /* 제목과 같은 크기로 조정 */
             margin: 0;
             color: black;
+        }
+
+        textarea {
+            word-wrap: break-word; /* 긴 단어도 잘리도록 설정 */
         }
     </style>
 </head>
@@ -204,8 +209,7 @@
                     var author = document.getElementById("author").value;
                     var content = document.getElementById("content").value;
                     var date = new Date();
-                    var formattedDate = `${date.getFullYear().toString().slice(2)}-${('0' + (date.getMonth() + 1)).slice(-2)}-${('0' + date.getDate()).slice(-2)} / ${('0' + date.getHours()).slice(-2)}:${('0' + date.getMinutes()).slice(-2)}:${('0' + date.getSeconds()).slice(-2)}`;
-
+                    var formattedDate = `${date.getFullYear()}-${('0' + (date.getMonth() + 1)).slice(-2)}-${('0' + date.getDate()).slice(-2)} / ${('0' + date.getHours()).slice(-2)}:${('0' + date.getMinutes()).slice(-2)}:${('0' + date.getSeconds()).slice(-2)}`;
 
                     // 이미지 처리
                     var imageFile = document.getElementById("image").files[0];
@@ -229,33 +233,39 @@
                     // 로컬 저장소에 저장
                     localStorage.setItem('posts', JSON.stringify(posts));
 
-                    // 테이블에 추가
-                    addPostToTable(newPost);
+                    // 테이블 초기화 및 재구성
+                    refreshPostTable();
 
-                    // 폼 초기화
+                    // 글쓰기 폼 초기화
                     document.getElementById("writeForm").reset();
+
+                    // 모달 창 닫기
                     writeModal.style.display = "none";
                 };
 
-                // 글 목록 테이블 추가
-                function addPostToTable(post) {
-                var tableBody = document.getElementById("postTableBody");
-                var newRow = document.createElement("tr");
-                newRow.classList.add("post-row");
-                newRow.innerHTML = `
-                <td class="num">${posts.length}</td>
-                <td class="title"><a href="#">${post.title}</a></td>
-                <td>${post.author}</td>
-                <td>${post.date}</td>
-                 `;
+                // 글 목록 테이블 갱신
+                function refreshPostTable() {
+                    var tableBody = document.getElementById("postTableBody");
+                    tableBody.innerHTML = ""; // 기존 글 목록 초기화
 
-                    // 글 제목 클릭 시 상세 보기 모달 열기
-                    newRow.querySelector(".title a").onclick = function(event) {
-                        event.preventDefault();
-                        showDetailModal(post);
-                    };
+                    posts.forEach((post, index) => {
+                        var newRow = document.createElement("tr");
+                        newRow.classList.add("post-row");
+                        newRow.innerHTML = `
+                            <td class="num">${index + 1}</td>
+                            <td class="title"><a href="#">${post.title}</a></td>
+                            <td>${post.author}</td>
+                            <td>${post.date}</td>
+                        `;
 
-                    tableBody.appendChild(newRow);
+                        // 글 제목 클릭 시 상세 보기 모달 열기
+                        newRow.querySelector(".title a").onclick = function(event) {
+                            event.preventDefault();
+                            showDetailModal(post);
+                        };
+
+                        tableBody.appendChild(newRow);
+                    });
                 }
 
                 // 상세 보기 모달에 글 내용 표시
@@ -274,10 +284,7 @@
                 function clearPosts() {
                     posts = [];
                     localStorage.setItem('posts', JSON.stringify(posts));
-                    var tableBody = document.getElementById("postTableBody");
-                    while (tableBody.firstChild) {
-                        tableBody.removeChild(tableBody.firstChild);
-                    }
+                    refreshPostTable();
                 }
 
                 // 댓글 작성 폼 제출
@@ -285,6 +292,8 @@
                 commentSubmitBtn.onclick = function() {
                     var commentAuthor = document.getElementById("commentAuthor").value;
                     var commentText = document.getElementById("commentText").value;
+                    var date = new Date();
+                    var formattedDate = `${date.getFullYear()}-${('0' + (date.getMonth() + 1)).slice(-2)}-${('0' + date.getDate()).slice(-2)} / ${('0' + date.getHours()).slice(-2)}:${('0' + date.getMinutes()).slice(-2)}:${('0' + date.getSeconds()).slice(-2)}`;
 
                     // 이미지 처리
                     var commentImageFile = document.getElementById("commentImage").files[0];
@@ -294,6 +303,7 @@
                     var comment = {
                         author: commentAuthor,
                         text: commentText,
+                        date: formattedDate,
                         imageUrl: commentImageUrl,
                         imageName: commentImageName
                     };
@@ -311,47 +321,47 @@
                     document.getElementById("commentForm").reset();
                 };
 
-// 댓글 목록 로드
-function loadComments(post) {
-    var commentList = document.getElementById("commentList");
-    commentList.innerHTML = ""; // 기존 댓글 초기화
+                // 댓글 목록 로드
+                function loadComments(post) {
+                    var commentList = document.getElementById("commentList");
+                    commentList.innerHTML = ""; // 기존 댓글 초기화
 
-    post.comments.forEach(comment => {
-        var commentDiv = document.createElement("div");
-        commentDiv.classList.add("comment-container");
+                    post.comments.forEach(comment => {
+                        var commentDiv = document.createElement("div");
+                        commentDiv.classList.add("comment-container");
 
-        // 작성자와 내용 출력
-        var authorParagraph = document.createElement("p");
-        authorParagraph.innerHTML = `<strong>작성자:</strong> ${comment.author}`;
+                        // 작성자와 내용 출력
+                        var authorParagraph = document.createElement("p");
+                        authorParagraph.innerHTML = `<strong>작성자:</strong> ${comment.author}`;
+                        var dateParagraph = document.createElement("p");
+                        dateParagraph.innerHTML = `<strong>작성일자:</strong> ${comment.date}`;
+                        var textParagraph = document.createElement("p");
+                        textParagraph.innerHTML = `<strong>내용:</strong> ${comment.text}`;
 
-        var textParagraph = document.createElement("p");
-        textParagraph.innerHTML = `<strong>내용:</strong> ${comment.text}`;
+                        commentDiv.appendChild(authorParagraph);
+                        commentDiv.appendChild(dateParagraph);
+                        commentDiv.appendChild(textParagraph);
 
-        commentDiv.appendChild(authorParagraph);
-        commentDiv.appendChild(textParagraph);
+                        // 이미지가 있는 경우 추가
+                        if (comment.imageUrl) {
+                            var image = document.createElement("img");
+                            image.src = comment.imageUrl;
+                            image.alt = comment.imageName;
+                            image.classList.add("attachment");
+                            commentDiv.appendChild(image);
+                        }
 
-        // 이미지가 있는 경우 추가
-        if (comment.imageUrl) {
-            var image = document.createElement("img");
-            image.src = comment.imageUrl;
-            image.alt = comment.imageName;
-            image.classList.add("attachment");
-            commentDiv.appendChild(image);
-        }
+                        // 댓글 사이에 구분선을 넣기 위해 hr 요소 추가
+                        var separator = document.createElement("hr");
+                        commentDiv.appendChild(separator);
 
-        // 댓글 사이에 구분선을 넣기 위해 hr 요소 추가
-        var separator = document.createElement("hr");
-        commentDiv.appendChild(separator);
-
-        commentList.appendChild(commentDiv);
-    });
-}
+                        commentList.appendChild(commentDiv);
+                    });
+                }
 
                 // 초기 데이터 로드
                 window.onload = function() {
-                    posts.forEach(post => {
-                        addPostToTable(post);
-                    });
+                    refreshPostTable();
                 };
 
                 // 전체 삭제 버튼
@@ -360,12 +370,9 @@ function loadComments(post) {
                     clearPosts();
                 };
 
-
                 // 초기화 함수 호출
                 function initializeExampleData() {
-                    posts.forEach(function(post) {
-                        addPostToTable(post);
-                    });
+                    refreshPostTable();
                 }
 
                 // 페이지 로드 시 초기화 함수 호출
