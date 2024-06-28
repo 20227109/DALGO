@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>RIP</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <noscript
+      ><link rel="stylesheet" href="assets/css/noscript.css"
+    /></noscript>
+  </head>
+  <body class="is-preload">
+    <!-- Wrapper -->
+    <div id="wrapper">
+      <!-- Header -->
+      <header id="header">
+        <a href="index.html" class="logo">RIP</a>
+      </header>
+
+      <!-- Nav -->
+      <nav id="nav">
+        <ul class="links">
+          <li><a href="index.html">소개 | Introduction</a></li>
+          <li><a href="rosua.html">개념 | RIP</a></li>
+          <li class="active"><a href="algo.html">알고리즘 | Algorithm</a></li>
+          <li><a href="imple.html">시뮬레이터 | Simulator</a></li>
+          <li><a href="community.html">소통공간 | Community</a></li>
+        </ul>
+       
+      </nav>
+      <div id="main">
+									<h2>Algorithm</h2>
+									<pre><code>(1) Distance_Vector_Routing ( )
+    {  
+(2)    D[ myself] = 0
+(3)    for (y = 1 to N)
+      {
+(4)        if (yis a neighbor)
+              D[y] = c[myself]Ly]
+(5)        else
+              D[y] = ∞
+      }
+(6)  send vector {D[1], D[2], .., D[N]]} to all neighbors olfe-Romi21%
+      // Update (improve the vector with the vector received from a neighbor)
+(7)  repeat (forever)
+      {
+(8)        wait(for a wector D from a neighbor w or any change in the link)
+(9)        for (y = 1 to N)
+        {
+                D[y] = min [D[y], (c[myself][w] + D„Ly)]  Bellman - Ford equation
+        }
+(10)        it (ary change in the vector)
+(11)              send vector {D[1], D[2], ..., D[N]} to all neighbors
+       }
+     }
+</code></pre>
+
+<h4>코드 분석</h4>
+<p>
+  (1) Distance_Vector_Routing(): <br>이 코드는 Distance Vector Routing 알고리즘을 구현하는 함수를 시작합니다.
+  <br><br>(2) D[myself] = 0 <br>변수 D는 각 노드까지의 거리를 나타내는 벡터입니다. 이 라인은 자기 자신까지의 거리를 0으로 초기화합니다.
+  <br><br>(3) for (y = 1 to N) <br>1부터 N까지의 노드를 순회합니다. y는 현재 순회 중인 노드를 나타냅니다.
+  <br><br>(4) if (y is a neighbor) <br>D[y] = c[myself][y]<br>만약 y가 현재 노드의 이웃 노드라면, D[y]를 현재 노드에서 y 노드까지의 비용 c[myself][y]로 설정합니다.
+  <br><br>(5) else<br> D[y] = ∞<br>이웃 노드가 아니라면, D[y]를 무한대 (∞)로 설정합니다.
+  <br><br>(6) send vector {D[1], D[2], ..., D[N]} to all neighbors  <br>모든 노드에 대해 계산된 거리 벡터 {D[1], D[2], ..., D[N]}를 이웃 노드들에게 전송합니다.
+  <br><br>(7) repeat (forever):  <br>무한 반복문을 시작합니다. 아래의 작업들이 이 반복문 안에서 계속 수행됩니다.
+  <br><br>(8) wait (for a vector D from a neighbor w or any change in the link)<br>이웃 노드 w로부터 벡터 D를 받거나 링크에 변경이 있을 때까지 대기합니다. 
+  <br><br>(9) for (y = 1 to N)<br> D[y] = min [D[y], (c[myself][w] + D[y])]<br>모든 노드에 대해서, 현재 계산된 거리 벡터 D[y]를 노드 w를 통해 가는 비용 c[myself][w]를 추가한 값과 기존 D[y] 값 중 작은 값을 선택하여 갱신합니다. 이것은 Bellman-Ford 방정식입니다.
+  <br><br>(10) if (any change in the vector): send vector {D[1], D[2], ..., D[N]} to all neighbors<br>만약 벡터에 변경이 있었다면, 갱신된 거리 벡터 {D[1], D[2], ..., D[N]}를 모든 이웃 노드에게 전송합니다.
+
+
+
+
+  <h4>C언어</h4>
+			<pre><code>#include <stdio.h>
+#include <stdbool.h>
+#include <limits.h>
+    
+    // 그래프의 노드 수
+    #define V 6
+    
+    // 최단 경로를 찾는 함수
+    void dijkstra(int graph[V][V], int startNode) {
+        int distance[V];
+        bool visited[V];
+    
+        // 모든 노드의 거리를 무한대로 초기화하고 방문 여부를 false로 설정
+        for (int i = 0; i < V; i++) {
+            distance[i] = INT_MAX;
+            visited[i] = false;
+        }
+    
+        // 시작 노드의 거리를 0으로 설정
+        distance[startNode] = 0;
+    
+        for (int count = 0; count < V - 1; count++) {
+            int minDistance = INT_MAX, minIndex;
+    
+            // 방문하지 않은 노드 중 최소 거리를 찾음
+            for (int v = 0; v < V; v++) {
+                if (!visited[v] && distance[v] <= minDistance) {
+                    minDistance = distance[v];
+                    minIndex = v;
+                }
+            }
+    
+            // 최소 거리 노드를 방문 처리
+            visited[minIndex] = true;
+    
+            // 최소 거리 노드를 통해 다른 노드까지의 거리를 업데이트
+            for (int v = 0; v < V; v++) {
+                if (!visited[v] && graph[minIndex][v] &&
+                    distance[minIndex] != INT_MAX &&
+                    distance[minIndex] + graph[minIndex][v] < distance[v]) {
+                    distance[v] = distance[minIndex] + graph[minIndex][v];
+                }
+            }
+        }
+    
+        // 결과 출력
+        printf("노드\t거리\n");
+        for (int i = 0; i < V; i++) {
+            printf("%d\t%d\n", i, distance[i]);
+        }
+    }
+    
+    int main() {
+        // 가중치가 있는 그래프 정의
+        int graph[V][V] = {
+            {0, 4, 0, 0, 0, 0},
+            {4, 0, 8, 0, 0, 0},
+            {0, 8, 0, 7, 0, 4},
+            {0, 0, 7, 0, 9, 14},
+            {0, 0, 0, 9, 0, 10},
+            {0, 0, 4, 14, 10, 0}
+        };
+    
+        // 시작 노드를 0으로 설정하여 다익스트라 알고리즘 호출
+        dijkstra(graph, 0);
+    
+        return 0;
+    }</code></pre>
+    
+
+
+          
+        </section>
+      </div>
+
+       <div id="copyright">
+        <ul>
+          <li>comedu</li>
+          <li>RIP</li>
+        </ul>
+      </div>
+    </div>
+
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/jquery.scrollex.min.js"></script>
+    <script src="assets/js/jquery.scrolly.min.js"></script>
+    <script src="assets/js/browser.min.js"></script>
+    <script src="assets/js/breakpoints.min.js"></script>
+    <script src="assets/js/util.js"></script>
+    <script src="assets/js/main.js"></script>
+  </body>
+</html>

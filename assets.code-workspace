@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"path": "D:/keu_ripim - 복사본/assets"
+		},
+		{
+			"path": "D:/keu_ripim - 복사본/images"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"stdio.h": "c"
+		}
+	}
+}
