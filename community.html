@@ -142,7 +142,7 @@
                     <p id="detailDate"></p>
                     <div id="detailContent" class="comment-container"></div>
                     <div id="commentSection" class="comment">
-                        <br>
+                        <br> 
                         <h3 class="comment-title">[댓글]</h3>
                         <div id="commentList"></div>
                         <form id="commentForm">
@@ -203,9 +203,19 @@
                     attachmentModal.style.display = "none";
                 };
 
+                // 이미지 파일을 Base64로 변환하는 함수
+                function toBase64(file) {
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.readAsDataURL(file);
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = error => reject(error);
+                    });
+                }
+
                 // 글쓰기 폼 제출
                 var submitBtn = document.getElementById("submitButton");
-                submitBtn.onclick = function() {
+                submitBtn.onclick = async function() {
                     var title = document.getElementById("title").value;
                     var author = document.getElementById("author").value;
                     var content = document.getElementById("content").value;
@@ -214,7 +224,7 @@
 
                     // 이미지 처리
                     var imageFile = document.getElementById("image").files[0];
-                    var imageUrl = imageFile ? URL.createObjectURL(imageFile) : "";
+                    var imageBase64 = imageFile ? await toBase64(imageFile) : "";
                     var imageName = imageFile ? imageFile.name : "";
 
                     // 새로운 글 객체 생성
@@ -223,7 +233,7 @@
                         author: author,
                         content: content,
                         date: formattedDate,
-                        imageUrl: imageUrl,
+                        imageBase64: imageBase64,
                         imageName: imageName,
                         comments: []
                     };
@@ -275,7 +285,7 @@
                     document.getElementById("detailAuthor").textContent = `작성자: ${post.author}`;
                     document.getElementById("detailDate").textContent = `작성일자: ${post.date}`;
                     document.getElementById("detailContent").innerHTML = `내용: ${post.content}
-                        ${post.imageUrl ? `<img src="${post.imageUrl}" alt="${post.imageName}" class="attachment">` : ""}
+                        ${post.imageBase64 ? `<img src="${post.imageBase64}" alt="${post.imageName}" class="attachment">` : ""}
                     `;
                     detailModal.style.display = "block";
                     loadComments(post);
@@ -290,7 +300,7 @@
 
                 // 댓글 작성 폼 제출
                 var commentSubmitBtn = document.getElementById("commentSubmitButton");
-                commentSubmitBtn.onclick = function() {
+                commentSubmitBtn.onclick = async function() {
                     var commentAuthor = document.getElementById("commentAuthor").value;
                     var commentText = document.getElementById("commentText").value;
                     var date = new Date();
@@ -298,14 +308,14 @@
 
                     // 이미지 처리
                     var commentImageFile = document.getElementById("commentImage").files[0];
-                    var commentImageUrl = commentImageFile ? URL.createObjectURL(commentImageFile) : "";
+                    var commentImageBase64 = commentImageFile ? await toBase64(commentImageFile) : "";
                     var commentImageName = commentImageFile ? commentImageFile.name : "";
 
                     var comment = {
                         author: commentAuthor,
                         text: commentText,
                         date: formattedDate,
-                        imageUrl: commentImageUrl,
+                        imageBase64: commentImageBase64,
                         imageName: commentImageName
                     };
 
@@ -344,9 +354,9 @@
                         commentDiv.appendChild(textParagraph);
 
                         // 이미지가 있는 경우 추가
-                        if (comment.imageUrl) {
+                        if (comment.imageBase64) {
                             var image = document.createElement("img");
-                            image.src = comment.imageUrl;
+                            image.src = comment.imageBase64;
                             image.alt = comment.imageName;
                             image.classList.add("attachment");
                             commentDiv.appendChild(image);
