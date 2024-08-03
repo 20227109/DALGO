@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>DALGO</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <noscript
+      ><link rel="stylesheet" href="assets/css/noscript.css"
+    /></noscript>
+  </head>
+  <body class="is-preload">
+    <!-- Wrapper -->
+    <div id="wrapper">
+      <!-- Header -->
+      <header id="header">
+        <a href="index.html" class="logo">DALGO</a>
+      </header>
+
+      <!-- Nav -->
+      <nav id="nav">
+        <ul class="links">
+          <li><a href="index.html">소개 | Introduction</a></li>
+          <li><a href="rosua.html">개념 | DALGO</a></li>
+          <li class="active"><a href="algo.html">알고리즘 | Algorithm</a></li>
+          <li><a href="imple.html">시뮬레이터 | Simulator</a></li>
+          <li><a href="community.html">소통공간 | Community</a></li>
+        </ul>
+       
+      </nav>
+      <div id="main">
+									<h2>Algorithm</h2>
+									<pre><code>(1) Dijkstra's Algorithm ( )
+    {  
+       Tree = {root}
+       for (y = 1 to N)
+      {
+           if (y is the root)
+              D[y] = 0
+           else if (y is a neighbor)
+              D[y] = c[root][y]
+           else  
+              D[y] = ∞
+      }
+     repeat
+      {
+          find a node w, with D[w] minimum among all nodes not in the Tree 
+          Tree = Tree ∪ {w}
+          for (every node x, which is a neighbor of w and not in the Tree)
+         {
+              D[x] = min [D[x], (D[w] + c[w][x])}
+         }
+    } until (all nodes included in the Tree)
+  
+</code></pre>
+
+<h4>단계</h4>
+<p>
+  (1) 노드는 하나의 노드를 사용하는 트리를 작성하기 위해 자기 자신을 트리의 루트로 선택하고, <br> LSDB의 정보를 기반으로 하여 각 노드의 전체 비용을 계산한다.
+  <br><br>(2) 노드는 트리에 속하지 않는 모든 노드들 중에서 루트와 가장 근접한 하나의 노드를 선택하고, 이것을 트리에 추가한다. <br> 트리에 노드를 추가한 다음 경로가 변경되었기 때문에 트리에 속해 있지 않는 모든 트리의 비용은 갱신되어야 한다.
+  <br><br>(3) 노드는 트리에 모든 노드가 추가될 때까지 두 번째 단계를 반복한다. <br><br><br>
+
+
+</div>
+
+<div id="copyright">
+    <ul>
+        <li>comedu</li>
+        <li>DALGO</li>
+    </ul>
+</div>
+</div>
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/jquery.scrollex.min.js"></script>
+    <script src="assets/js/jquery.scrolly.min.js"></script>
+    <script src="assets/js/browser.min.js"></script>
+    <script src="assets/js/breakpoints.min.js"></script>
+    <script src="assets/js/util.js"></script>
+    <script src="assets/js/main.js"></script>
+  </body>
+</html>

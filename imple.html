@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DALGO</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <noscript>
+        <link rel="stylesheet" href="assets/css/noscript.css" />
+    </noscript>
+    <style>
+        .input {
+            width: 60px;
+        }
+
+        .label {
+            font-size: 12px;
+            color: gray;
+        }
+
+        .array {
+            margin-bottom: 30px;
+            padding: 10px;
+        }
+
+        .array-matrix {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        .array-matrix td {
+            border: 2px solid #ccc;
+            padding: 20px;
+            text-align: center;
+        }
+
+        #matrix-container,
+        #new-matrix-container {
+            border: 1px solid #ffffff;
+            padding: 10px;
+            display: inline-block;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: center;
+        }
+
+        #description-container {
+            margin-top: 20px;
+            padding: 10px;
+        }
+
+        #treeCanvas,
+        #initialGraphCanvas {
+            border: 2px solid #f0eeee;
+            margin-top: 10px;
+        }
+
+        #initialGraphContainer {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body class="is-preload">
+    <div id="wrapper">
+        <header id="header">
+            <a href="index.html" class="logo">DALGO</a>
+        </header>
+
+        <nav id="nav">
+            <ul class="links">
+                <li><a href="index.html">소개 | Introduction</a></li>
+                <li><a href="rosua.html">개념 | DALGO </a></li>
+                <li><a href="algo.html">알고리즘 | Algorithm</a></li>
+                <li class="active"><a href="imple.html">시뮬레이터 | Simulator</a></li>
+                <li><a href="community.html">소통공간 | Community</a></li>
+            </ul>
+        </nav>
+
+        <div id="main">
+            <h2>Simulator</h2>
+
+            <h5>갱신 과정 설명<br><br>
+                1. 초기에는 모든 노드의 거리를 무한대 (∞)로 설정됩니다.<br>
+                2. 선택한 루트 노드의 거리를 0으로 설정됩니다. <br>
+                3. 아직 방문하지 않은 노드 중에서 가장 짧은 거리의 노드를 선택합니다.<br>
+                4. 선택한 노드를 통해 다른 노드로 가는 거리를 계산하고, 더 짧은 거리를 찾으면 업데이트합니다. <br>
+                5. 모든 노드를 방문할 때까지 3단계로 돌아가 반복합니다. <br>
+                6. 최단 거리와 최단 경로를 계산합니다.
+            </h5>
+
+            <label for="arrayCount">만들고 싶은 노드의 개수
+                <input type="number" id="arrayCount" placeholder="1,2,3..">
+                <button onclick="createArrays()">Go</button>
+            </label>
+
+            <div id="arraysContainer"></div>
+
+            <div id="initialGraphContainer" style="display: none;">
+                <button onclick="drawInitialGraph()">Draw Initial Graph</button>
+                <canvas id="initialGraphCanvas" width="1362" height="450"></canvas>
+            </div>
+
+            <div id="rootNodeContainer" style="display: none;">
+                <label for="arrayName">루트 노드 선택
+                    <input type="text" id="arrayName" placeholder="A,B,C..">
+                    <button onclick="runDijkstra()">Go</button>
+                </label>
+            </div>
+
+            <div id="result"></div>
+            <div id="matrix-container"></div>
+            <div id="new-matrix-container"></div>
+            <div id="description-container"></div>
+            <canvas id="treeCanvas" width="1362" height="500"></canvas>
+
+            <script>
+                let graph = {};
+                let arrayCount = 0;
+
+                function createArrays() {
+                    arrayCount = parseInt(document.getElementById('arrayCount').value);
+                    graph = {};
+                    const arraysContainer = document.getElementById('arraysContainer');
+                    arraysContainer.innerHTML = '';
+
+                    for (let i = 0; i < arrayCount; i++) {
+                        const arrayName = String.fromCharCode(65 + i);
+                        const arrayElement = document.createElement('div');
+                        arrayElement.className = 'array';
+
+                        const arrayLabel = document.createElement('p');
+                        arrayLabel.textContent = arrayName;
+
+                        const arrayMatrix = document.createElement('table');
+                        arrayMatrix.className = 'array-matrix';
+                        const row = document.createElement('tr');
+                        for (let j = 0; j < arrayCount; j++) {
+                            const cell = document.createElement('td');
+                            const input = document.createElement('input');
+                            input.type = 'text';
+                            input.id = `array-${arrayName}-${String.fromCharCode(65 + j)}`;
+                            if (j === i) {
+                                input.value = '0';
+                                input.readOnly = true;
+                            } else {
+                                input.value = '∞';
+                            }
+                            cell.appendChild(input);
+                            row.appendChild(cell);
+                        }
+                        arrayMatrix.appendChild(row);
+
+                        arrayElement.appendChild(arrayLabel);
+                        arrayElement.appendChild(arrayMatrix);
+                        arraysContainer.appendChild(arrayElement);
+
+                        graph[arrayName] = {};
+                    }
+
+                    document.getElementById('initialGraphContainer').style.display = 'block';
+                }
+
+                function drawInitialGraph() {
+                    const canvas = document.getElementById('initialGraphCanvas');
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    if (arrayCount === 0) return;
+
+                    for (let i = 0; i < arrayCount; i++) {
+                        const sourceArrayName = String.fromCharCode(65 + i);
+                        for (let j = 0; j < arrayCount; j++) {
+                            const targetArrayName = String.fromCharCode(65 + j);
+                            const value = document.getElementById(`array-${sourceArrayName}-${targetArrayName}`).value;
+                            graph[sourceArrayName][targetArrayName] = value === '∞' ? Infinity : parseFloat(value);
+                        }
+                    }
+
+                    const nodeRadius = 20;
+                    const positions = calculateNodePositions(Array.from(Array(arrayCount).keys()).map(i => String.fromCharCode(65 + i)), canvas.width, canvas.height, nodeRadius);
+
+                    ctx.font = '16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+
+                    // Draw nodes
+                    for (const node in positions) {
+                        ctx.beginPath();
+                        ctx.arc(positions[node].x, positions[node].y, nodeRadius, 0, 2 * Math.PI);
+                        ctx.fillStyle = 'white';
+                        ctx.fill();
+                        ctx.stroke();
+                        ctx.fillStyle = 'black';
+                        ctx.fillText(node, positions[node].x, positions[node].y);
+                    }
+
+                    // Draw edges
+                    for (const source in graph) {
+                        for (const target in graph[source]) {
+                            if (graph[source][target] !== Infinity) {
+                                ctx.beginPath();
+                                ctx.moveTo(positions[source].x, positions[source].y);
+                                ctx.lineTo(positions[target].x, positions[target].y);
+                                ctx.stroke();
+                                
+                                const midX = (positions[source].x + positions[target].x) / 2;
+                                const midY = (positions[source].y + positions[target].y) / 2;
+
+                                // Draw label for edges
+                                if (source === target) {
+                                    // Self-loop label
+                                    ctx.fillText(graph[source][target], positions[source].x, positions[source].y - nodeRadius - 10);
+                                } else {
+                                    // Normal edge label
+                                    ctx.fillText(graph[source][target], midX, midY - 10);
+                                }
+                            }
+                        }
+                    }
+
+                    // Show root node selection after drawing the graph
+                    document.getElementById('rootNodeContainer').style.display = 'block';
+                }
+
+                function runDijkstra() {
+                    const arrayNameInput = document.getElementById('arrayName');
+
+                    if (!arrayNameInput) {
+                        alert("배열 이름 입력 요소를 찾을 수 없습니다.");
+                        return;
+                    }
+
+                    const selectedArrayName = arrayNameInput.value.toUpperCase();
+
+                    if (!(selectedArrayName in graph)) {
+                        alert("유효한 배열 이름을 입력하세요.");
+                        return;
+                    }
+
+                    const { distances, path } = dijkstra(graph, selectedArrayName);
+                    console.log(`${selectedArrayName} 노드의 최단 거리 결과`, distances);
+
+                    const matrixContainer = document.getElementById('matrix-container');
+                    const selectedArray = graph[selectedArrayName];
+                    const matrixTable = document.createElement('table');
+                    const matrixRow = document.createElement('tr');
+                    for (const targetArrayName in selectedArray) {
+                        const cell = document.createElement('td');
+                        cell.textContent = selectedArray[targetArrayName] === Infinity ? '∞' : selectedArray[targetArrayName];
+                        matrixRow.appendChild(cell);
+                    }
+                    matrixTable.appendChild(matrixRow);
+                    matrixContainer.innerHTML = `<h3>ORIGINAL "${selectedArrayName}"</h3>`;
+                    matrixContainer.appendChild(matrixTable);
+
+                    const { distances: newDistances, path: newPath } = dijkstra(graph, selectedArrayName);
+
+                    const newMatrixContainer = document.getElementById('new-matrix-container');
+                    const newMatrixTable = document.createElement('table');
+                    const newMatrixRow = document.createElement('tr');
+                    for (const targetArrayName in newDistances) {
+                        const cell = document.createElement('td');
+                        cell.textContent = newDistances[targetArrayName] === Infinity ? '∞' : `${newDistances[targetArrayName]} (${getPathInfo(targetArrayName, newPath)})`;
+                        newMatrixRow.appendChild(cell);
+                    }
+                    newMatrixTable.appendChild(newMatrixRow);
+                    newMatrixContainer.innerHTML = `<h3>NEW "${selectedArrayName}"</h3>`;
+                    newMatrixContainer.appendChild(newMatrixTable);
+
+                    const descriptionText = getPathInfo(selectedArrayName, newPath);
+                    const descriptionContainer = document.getElementById('description-container');
+
+                    drawTree(newPath, newDistances, selectedArrayName);
+                }
+
+                function dijkstra(graph, start) {
+                    const dist = {};
+                    const path = {};
+                    const visited = {};
+
+                    for (const vertex in graph) {
+                        dist[vertex] = Infinity;
+                        path[vertex] = null;
+                        visited[vertex] = false;
+                    }
+
+                    dist[start] = 0;
+
+                    for (let i = 0; i < arrayCount - 1; i++) {
+                        const u = findMinDistVertex(dist, visited);
+                        visited[u] = true;
+
+                        for (const v in graph[u]) {
+                            if (!visited[v] && dist[u] + graph[u][v] < dist[v]) {
+                                dist[v] = dist[u] + graph[u][v];
+                                path[v] = u;
+                            }
+                        }
+                    }
+
+                    return { distances: dist, path };
+                }
+
+                function findMinDistVertex(dist, visited) {
+                    let minDist = Infinity;
+                    let minVertex = null;
+
+                    for (const vertex in dist) {
+                        if (!visited[vertex] && dist[vertex] < minDist) {
+                            minDist = dist[vertex];
+                            minVertex = vertex;
+                        }
+                    }
+
+                    return minVertex;
+                }
+
+                function getPathInfo(vertex, path) {
+                    if (path[vertex] === null) {
+                        return `${vertex}->${vertex}`;
+                    }
+
+                    let current = vertex;
+                    let pathString = '';
+
+                    while (path[current] !== null) {
+                        pathString = `+${current}` + pathString;
+                        current = path[current];
+                    }
+
+                    return `${vertex}->${current}${pathString}`;
+                }
+
+                function drawTree(path, distances, root) {
+                    const canvas = document.getElementById('treeCanvas');
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    const nodeRadius = 20;
+                    const positions = calculateNodePositions(Object.keys(path), canvas.width, canvas.height, nodeRadius);
+
+                    ctx.font = '16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+
+                    for (const node in path) {
+                        if (path[node] !== null) {
+                            ctx.beginPath();
+                            ctx.moveTo(positions[node].x, positions[node].y);
+                            ctx.lineTo(positions[path[node]].x, positions[path[node]].y);
+                            ctx.stroke();
+                            const midX = (positions[node].x + positions[path[node]].x) / 2;
+                            const midY = (positions[node].y + positions[path[node]].y) / 2;
+                            ctx.fillText(distances[node], midX, midY - 10);
+                        }
+                    }
+
+                    for (const node in positions) {
+                        ctx.beginPath();
+                        ctx.arc(positions[node].x, positions[node].y, nodeRadius, 0, 2 * Math.PI);
+                        ctx.fillStyle = node === root ? 'red' : 'white';
+                        ctx.fill();
+                        ctx.stroke();
+                        ctx.fillStyle = 'black';
+                        ctx.fillText(node, positions[node].x, positions[node].y);
+                    }
+                }
+
+                function calculateNodePositions(nodes, canvasWidth, canvasHeight, nodeRadius) {
+                    const positions = {};
+                    const centerX = canvasWidth / 2;
+                    const centerY = canvasHeight / 2;
+                    const radius = Math.min(centerX, centerY) - nodeRadius * 2;
+
+                    for (let i = 0; i < nodes.length; i++) {
+                        const angle = (i / nodes.length) * 2 * Math.PI;
+                        positions[nodes[i]] = {
+                            x: centerX + radius * Math.cos(angle),
+                            y: centerY + radius * Math.sin(angle)
+                        };
+                    }
+
+                    return positions;
+                }
+            </script>
+        </div>
+
+        <div id="copyright">
+            <ul>
+                <li>comedu</li>
+                <li>DALGO</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/jquery.scrollex.min.js"></script>
+    <script src="assets/js/jquery.scrolly.min.js"></script>
+    <script src="assets/js/browser.min.js"></script>
+    <script src="assets/js/breakpoints.min.js"></script>
+    <script src="assets/js/util.js"></script>
+    <script src="assets/js/main.js"></script>
+</body>
+</html>

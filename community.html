@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DALGO</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            word-wrap: break-word; /* 긴 단어도 잘리도록 설정 */
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .comment-container {
+            margin-bottom: 10px;
+        }
+
+        .reply {
+            margin-left: 20px;
+        }
+
+        .selected-row {
+            background-color: #f0f0f0;
+        }
+
+        .attachment {
+            display: block;
+            margin-top: 10px;
+        }
+
+        h3.comment-title {
+            font-size: 35px; /* 제목과 같은 크기로 조정 */
+            margin: 0;
+            color: black;
+        }
+
+        textarea {
+            word-wrap: break-word; /* 긴 단어도 잘리도록 설정 */
+        }
+    </style>
+</head>
+<body>
+    <!-- Wrapper -->
+    <div id="wrapper">
+        <!-- Header -->
+        <header id="header">
+            <a href="index.html" class="logo">DALGO</a>
+        </header>
+
+        <!-- Nav -->
+        <nav id="nav">
+            <ul class="links">
+                <li><a href="index.html">소개 | Introduction</a></li>
+                <li><a href="rosua.html">개념 | DALGO</a></li>
+                <li><a href="algo.html">알고리즘 | Algorithm</a></li>
+                <li><a href="imple.html">시뮬레이터 | Simulator</a></li>
+                <li class="active"><a href="community.html">소통공간 | Community</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main -->
+        <div id="main">
+            <!-- Post -->
+            <h2>Community</h2>
+            <dl>
+                <div class="post-actions">
+                    <h2>글 목록</h2>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr class="header">
+                            <td class="num">번호</td>
+                            <td class="title">제목</td>
+                            <td>작성자</td>
+                            <td>작성일자</td>
+                        </tr>
+                    </thead>
+                    <tbody id="postTableBody">
+                    </tbody>
+                </table>
+                <button id="lastPostWriteButton">글쓰기</button>
+                <button id="clearButton">전체 삭제</button>
+            </dl>
+
+            <div id="writeModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>글쓰기</h2>
+                    <form id="writeForm">
+                        <label for="title">[제목]:</label>
+                        <input type="text" id="title" name="title"><br><br>
+                        <label for="author">작성자:</label>
+                        <input type="text" id="author" name="author"><br><br>
+                        <label for="content">내용:</label><br>
+                        <textarea id="content" name="content" rows="4" cols="50"></textarea><br><br>
+                        <label for="image">이미지 첨부:</label>
+                        <input type="file" id="image" name="image"><br><br>
+                        <button type="button" id="submitButton">등록</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 상세 보기 모달 창 -->
+            <div id="detailModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2 id="detailTitle"></h2>
+                    <p id="detailAuthor"></p>
+                    <p id="detailDate"></p>
+                    <div id="detailContent" class="comment-container"></div>
+                    <div id="commentSection" class="comment">
+                        <br> 
+                        <h3 class="comment-title">[댓글]</h3>
+                        <div id="commentList"></div>
+                        <form id="commentForm">
+                            <label for="commentAuthor">작성자:</label>
+                            <input type="text" id="commentAuthor" name="commentAuthor"><br><br>
+                            <label for="commentText">댓글:</label><br>
+                            <textarea id="commentText" name="commentText" rows="2" cols="50"></textarea><br><br>
+                            <label for="commentImage">이미지 첨부:</label>
+                            <input type="file" id="commentImage" name="commentImage"><br><br>
+                            <button type="button" id="commentSubmitButton">댓글 등록</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 첨부파일 보기 모달 창 -->
+            <div id="attachmentModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>첨부파일</h2>
+                    <div id="attachmentContent"></div>
+                </div>
+            </div>
+
+            <script>
+                // 로컬 저장소에서 데이터 로드
+                var posts = JSON.parse(localStorage.getItem('posts')) || [];
+
+                // 모달 창 열기와 닫기
+                var writeModal = document.getElementById("writeModal");
+                var writeBtn = document.getElementById("lastPostWriteButton");
+                var writeSpan = document.getElementsByClassName("close")[0];
+                writeBtn.onclick = function() {
+                    writeModal.style.display = "block";
+                }
+                writeSpan.onclick = function() {
+                    writeModal.style.display = "none";
+                }
+                window.onclick = function(event) {
+                    if (event.target == writeModal) {
+                        writeModal.style.display = "none";
+                    }
+                }
+
+                // 상세 보기 모달 창 닫기 기능
+                var detailModal = document.getElementById("detailModal");
+                var detailSpan = document.getElementsByClassName("close")[1]; // 상세 보기 모달의 close 버튼
+
+                detailSpan.onclick = function() {
+                    detailModal.style.display = "none";
+                };
+
+                // 첨부파일 보기 모달 창 닫기 기능
+                var attachmentModal = document.getElementById("attachmentModal");
+                var attachmentSpan = document.getElementsByClassName("close")[2]; // 첨부파일 보기 모달의 close 버튼
+
+                attachmentSpan.onclick = function() {
+                    attachmentModal.style.display = "none";
+                };
+
+                // 이미지 파일을 Base64로 변환하는 함수
+                function toBase64(file) {
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.readAsDataURL(file);
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = error => reject(error);
+                    });
+                }
+
+                // 글쓰기 폼 제출
+                var submitBtn = document.getElementById("submitButton");
+                submitBtn.onclick = async function() {
+                    var title = document.getElementById("title").value;
+                    var author = document.getElementById("author").value;
+                    var content = document.getElementById("content").value;
+                    var date = new Date();
+                    var formattedDate = `${date.getFullYear()}-${('0' + (date.getMonth() + 1)).slice(-2)}-${('0' + date.getDate()).slice(-2)} / ${('0' + date.getHours()).slice(-2)}:${('0' + date.getMinutes()).slice(-2)}:${('0' + date.getSeconds()).slice(-2)}`;
+
+                    // 이미지 처리
+                    var imageFile = document.getElementById("image").files[0];
+                    var imageBase64 = imageFile ? await toBase64(imageFile) : "";
+                    var imageName = imageFile ? imageFile.name : "";
+
+                    // 새로운 글 객체 생성
+                    var newPost = {
+                        title: title,
+                        author: author,
+                        content: content,
+                        date: formattedDate,
+                        imageBase64: imageBase64,
+                        imageName: imageName,
+                        comments: []
+                    };
+
+                    // 글 목록에 추가
+                    posts.push(newPost);
+
+                    // 로컬 저장소에 저장
+                    localStorage.setItem('posts', JSON.stringify(posts));
+
+                    // 테이블 초기화 및 재구성
+                    refreshPostTable();
+
+                    // 글쓰기 폼 초기화
+                    document.getElementById("writeForm").reset();
+
+                    // 모달 창 닫기
+                    writeModal.style.display = "none";
+                };
+
+                // 글 목록 테이블 갱신
+                function refreshPostTable() {
+                    var tableBody = document.getElementById("postTableBody");
+                    tableBody.innerHTML = ""; // 기존 글 목록 초기화
+
+                    posts.forEach((post, index) => {
+                        var newRow = document.createElement("tr");
+                        newRow.classList.add("post-row");
+                        newRow.innerHTML = `
+                            <td class="num">${index + 1}</td>
+                            <td class="title"><a href="#">${post.title}</a></td>
+                            <td>${post.author}</td>
+                            <td>${post.date}</td>
+                        `;
+
+                        // 글 제목 클릭 시 상세 보기 모달 열기
+                        newRow.querySelector(".title a").onclick = function(event) {
+                            event.preventDefault();
+                            showDetailModal(post);
+                        };
+
+                        tableBody.appendChild(newRow);
+                    });
+                }
+
+                // 상세 보기 모달에 글 내용 표시
+                function showDetailModal(post) {
+                    document.getElementById("detailTitle").textContent = `[제목]: ${post.title}`;
+                    document.getElementById("detailAuthor").textContent = `작성자: ${post.author}`;
+                    document.getElementById("detailDate").textContent = `작성일자: ${post.date}`;
+                    document.getElementById("detailContent").innerHTML = `내용: ${post.content}
+                        ${post.imageBase64 ? `<img src="${post.imageBase64}" alt="${post.imageName}" class="attachment">` : ""}
+                    `;
+                    detailModal.style.display = "block";
+                    loadComments(post);
+                }
+
+                // 글 목록 초기화
+                function clearPosts() {
+                    posts = [];
+                    localStorage.setItem('posts', JSON.stringify(posts));
+                    refreshPostTable();
+                }
+
+                // 댓글 작성 폼 제출
+                var commentSubmitBtn = document.getElementById("commentSubmitButton");
+                commentSubmitBtn.onclick = async function() {
+                    var commentAuthor = document.getElementById("commentAuthor").value;
+                    var commentText = document.getElementById("commentText").value;
+                    var date = new Date();
+                    var formattedDate = `${date.getFullYear()}-${('0' + (date.getMonth() + 1)).slice(-2)}-${('0' + date.getDate()).slice(-2)} / ${('0' + date.getHours()).slice(-2)}:${('0' + date.getMinutes()).slice(-2)}:${('0' + date.getSeconds()).slice(-2)}`;
+
+                    // 이미지 처리
+                    var commentImageFile = document.getElementById("commentImage").files[0];
+                    var commentImageBase64 = commentImageFile ? await toBase64(commentImageFile) : "";
+                    var commentImageName = commentImageFile ? commentImageFile.name : "";
+
+                    var comment = {
+                        author: commentAuthor,
+                        text: commentText,
+                        date: formattedDate,
+                        imageBase64: commentImageBase64,
+                        imageName: commentImageName
+                    };
+
+                    // 현재 보고 있는 글에 댓글 추가
+                    var postTitle = document.getElementById("detailTitle").textContent.replace('[제목]: ', '');
+                    var post = posts.find(p => p.title === postTitle);
+                    if (post) {
+                        post.comments.push(comment);
+                        localStorage.setItem('posts', JSON.stringify(posts));
+                        loadComments(post);
+                    }
+
+                    // 댓글 작성 폼 초기화
+                    document.getElementById("commentForm").reset();
+                };
+
+                // 댓글 목록 로드
+                function loadComments(post) {
+                    var commentList = document.getElementById("commentList");
+                    commentList.innerHTML = ""; // 기존 댓글 초기화
+
+                    post.comments.forEach(comment => {
+                        var commentDiv = document.createElement("div");
+                        commentDiv.classList.add("comment-container");
+
+                        // 작성자와 내용 출력
+                        var authorParagraph = document.createElement("p");
+                        authorParagraph.innerHTML = `<strong>작성자:</strong> ${comment.author}`;
+                        var dateParagraph = document.createElement("p");
+                        dateParagraph.innerHTML = `<strong>작성일자:</strong> ${comment.date}`;
+                        var textParagraph = document.createElement("p");
+                        textParagraph.innerHTML = `<strong>내용:</strong> ${comment.text}`;
+
+                        commentDiv.appendChild(authorParagraph);
+                        commentDiv.appendChild(dateParagraph);
+                        commentDiv.appendChild(textParagraph);
+
+                        // 이미지가 있는 경우 추가
+                        if (comment.imageBase64) {
+                            var image = document.createElement("img");
+                            image.src = comment.imageBase64;
+                            image.alt = comment.imageName;
+                            image.classList.add("attachment");
+                            commentDiv.appendChild(image);
+                        }
+
+                        // 댓글 사이에 구분선을 넣기 위해 hr 요소 추가
+                        var separator = document.createElement("hr");
+                        commentDiv.appendChild(separator);
+
+                        commentList.appendChild(commentDiv);
+                    });
+                }
+
+                // 초기 데이터 로드
+                window.onload = function() {
+                    refreshPostTable();
+                };
+
+                // 전체 삭제 버튼
+                var clearButton = document.getElementById("clearButton");
+                clearButton.onclick = function() {
+                    clearPosts();
+                };
+
+                // 초기화 함수 호출
+                function initializeExampleData() {
+                    refreshPostTable();
+                }
+
+                // 페이지 로드 시 초기화 함수 호출
+                window.onload = initializeExampleData;
+            </script>
+        </div>
+
+        <!-- Copyright -->
+        <div id="copyright">
+            <ul>
+                <li>comedu</li>
+                <li>DALGO</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/jquery.scrollex.min.js"></script>
+    <script src="assets/js/jquery.scrolly.min.js"></script>
+    <script src="assets/js/browser.min.js"></script>
+    <script src="assets/js/breakpoints.min.js"></script>
+    <script src="assets/js/util.js"></script>
+    <script src="assets/js/main.js"></script>
+</body>
+</html>

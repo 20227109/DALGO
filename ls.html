@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RIP Routing Algorithm</title>
+    <style>
+        .array-container {
+            display: flex;
+            flex-direction: row;
+            margin-bottom: 10px;
+        }
+
+        .array {
+            border: 1px solid black;
+            padding: 5px;
+            margin-right: 10px;
+            text-align: center;
+        }
+
+        .comment {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <label for="arrayCount">만들고 싶은 배열의 개수를 입력하세요:
+        <input type="number" id="arrayCount" min="1">
+        <button onclick="createArrays()">배열 생성</button>
+    </label>
+
+    <div id="arrayContainer"></div>
+
+    <label for="selectArray">배열 선택:
+        <select id="selectArray"></select>
+        <button onclick="showSelectedArray()">배열 보기</button>
+    </label>
+
+    <div id="selectedArray" class="array-container"></div>
+
+    <div id="routingResult" class="array-container"></div>
+
+    <div id="resultComment" class="comment"></div>
+
+    <!-- "RIP 알고리즘 실행" 버튼 추가 -->
+    <button onclick="runRipAlgorithm()">RIP 알고리즘 실행</button>
+
+    <!-- 업데이트된 배열 보기 버튼 추가 -->
+    <button onclick="showUpdatedArray()">업데이트된 배열 보기</button>
+
+    <!-- 업데이트된 배열을 표시할 영역 추가 -->
+    <div id="updatedArray" class="array-container"></div>
+
+    <!-- 최종 결과 보기 버튼 추가 -->
+    <button onclick="showFinalResult()">최종 결과 보기</button>
+
+    <!-- 최종 결과를 표시할 영역 추가 -->
+    <div id="finalResult" class="array-container"></div>
+
+    <script>
+        const arrays = []; // 배열 저장
+        let updatedArray = null; // 업데이트된 배열 저장
+
+        function createArrays() {
+            const arrayCount = parseInt(document.getElementById("arrayCount").value);
+            const arrayContainer = document.getElementById("arrayContainer");
+            const selectArray = document.getElementById("selectArray");
+            arrayContainer.innerHTML = ""; // 이전 내용 삭제
+            selectArray.innerHTML = ""; // 드롭다운 목록 초기화
+
+            for (let i = 0; i < arrayCount; i++) {
+                const arrayDiv = document.createElement("div");
+                arrayDiv.className = "array";
+
+                const arrayLabel = document.createElement("label");
+                arrayLabel.textContent = `${String.fromCharCode(65 + i)}배열`;
+                arrayDiv.appendChild(arrayLabel);
+
+                const array = [];
+                for (let j = 0; j < arrayCount; j++) {
+                    const input = document.createElement("input");
+                    input.type = "number";
+                    input.min = "0";
+                    if (i === j) {
+                        input.value = "0";
+                    } else {
+                        input.placeholder = "∞";
+                    }
+                    array.push(input);
+                    arrayDiv.appendChild(input);
+                }
+
+                arrays.push(array);
+                arrayContainer.appendChild(arrayDiv);
+
+                // 드롭다운 목록 업데이트
+                const option = document.createElement("option");
+                option.value = String.fromCharCode(65 + i);
+                option.textContent = `${String.fromCharCode(65 + i)}배열`;
+                selectArray.appendChild(option);
+            }
+        }
+
+        function showSelectedArray() {
+            const selectArray = document.getElementById("selectArray");
+            const selectedArrayDiv = document.getElementById("selectedArray");
+            const routingResultDiv = document.getElementById("routingResult");
+            const resultCommentDiv = document.getElementById("resultComment");
+            const selectedArrayName = selectArray.value.toUpperCase();
+
+            selectedArrayDiv.innerHTML = ""; // 이전 내용 삭제
+            routingResultDiv.innerHTML = ""; // 이전 결과 삭제
+            resultCommentDiv.innerHTML = ""; // 이전 코멘트 삭제
+
+            for (let i = 0; i < arrays.length; i++) {
+                if (String.fromCharCode(65 + i) === selectedArrayName) {
+                    const selectedArray = arrays[i];
+                    const resultArray = [];
+                    for (let j = 0; j < selectedArray.length; j++) {
+                        const input = document.createElement("input");
+                        input.type = "number";
+                        input.value = selectedArray[j].value;
+                        selectedArrayDiv.appendChild(input);
+                        resultArray.push(input);
+                    }
+                    break;
+                }
+            }
+        }
+
+        // RIP 알고리즘 실행 함수
+        function runRipAlgorithm() {
+            const selectArray = document.getElementById("selectArray");
+            const selectedArrayName = selectArray.value.toUpperCase();
+            let selectedArray = getSelectedArray(selectedArrayName);
+
+            if (selectedArray) {
+                // Dijkstra 알고리즘을 실행하여 최단 경로 계산
+                const graph = convertArrayToGraph(selectedArray);
+                const startNode = selectedArrayName.charCodeAt(0) - 65; // A를 0으로 매핑
+                const shortestDistances = dijkstra(graph, startNode);
+
+                // Dijkstra 결과를 업데이트된 배열로 설정
+                selectedArray = shortestDistances.map(row => row.map(val => (val === Infinity ? "∞" : val.toString())));
+
+                // 결과를 표시
+                displayRipAlgorithmResult(selectedArrayName, selectedArray);
+            }
+        }
+
+        function getSelectedArray(selectedArrayName) {
+            for (let i = 0; i < arrays.length; i++) {
+                if (String.fromCharCode(65 + i) === selectedArrayName) {
+                    return arrays[i];
+                }
+            }
+            return null;
+        }
+
+        // RIP 알고리즘 결과 표시 함수
+        function displayRipAlgorithmResult(selectedArrayName, selectedArray) {
+            // 업데이트된 배열을 selectedArray로 설정
+            const N = selectedArray.length;
+
+            // 결과를 routingResultDiv에 표시
+            const routingResultDiv = document.getElementById("routingResult");
+            routingResultDiv.innerHTML = ""; // 이전 결과 삭제
+            for (let i = 0; i < N; i++) {
+                const rowDiv = document.createElement("div");
+                rowDiv.className = "array";
+                for (let j = 0; j < N; j++) {
+                    const input = document.createElement("input");
+                    input.type = "text";
+                    input.value = selectedArray[i][j];
+                    rowDiv.appendChild(input);
+                }
+                routingResultDiv.appendChild(rowDiv);
+            }
+
+            // 코멘트 표시
+            const comment = document.createElement("div");
+            comment.className = "comment";
+            comment.textContent = `${selectedArrayName}배열의 열의 최단 거리 결과는 다음과 같습니다.`;
+            routingResultDiv.appendChild(comment);
+
+            // 업데이트된 배열 저장
+            updatedArray = selectedArray;
+        }
+
+        // 업데이트된 배열 보기
+        function showUpdatedArray() {
+            const updatedArrayDiv = document.getElementById("updatedArray");
+            updatedArrayDiv.innerHTML = ""; // 이전 내용 삭제
+
+            if (updatedArray) {
+                for (let i = 0; i < updatedArray.length; i++) {
+                    const rowDiv = document.createElement("div");
+                    rowDiv.className = "array";
+                    for (let j = 0; j < updatedArray[i].length; j++) {
+                        const input = document.createElement("input");
+                        input.type = "text";
+                        input.value = updatedArray[i][j];
+                        rowDiv.appendChild(input);
+                    }
+                    updatedArrayDiv.appendChild(rowDiv);
+                }
+            } else {
+                const noDataMessage = document.createElement("div");
+                noDataMessage.className = "comment";
+                noDataMessage.textContent = "갱신된 배열이 아직 없습니다. 먼저 RIP 알고리즘을 실행하세요.";
+                updatedArrayDiv.appendChild(noDataMessage);
+            }
+        }
+
+        // 최종 결과 보기
+        function showFinalResult() {
+            const finalResultDiv = document.getElementById("finalResult");
+            finalResultDiv.innerHTML = ""; // 이전 내용 삭제
+
+            if (updatedArray) {
+                for (let i = 0; i < updatedArray.length; i++) {
+                    const rowDiv = document.createElement("div");
+                    rowDiv.className = "array";
+                    for (let j = 0; j < updatedArray[i].length; j++) {
+                        const input = document.createElement("input");
+                        input.type = "text";
+                        input.value = updatedArray[i][j];
+                        rowDiv.appendChild(input);
+                    }
+                    finalResultDiv.appendChild(rowDiv);
+                }
+            } else {
+                const noDataMessage = document.createElement("div");
+                noDataMessage.className = "comment";
+                noDataMessage.textContent = "갱신된 배열이 아직 없습니다. 먼저 RIP 알고리즘을 실행하세요.";
+                finalResultDiv.appendChild(noDataMessage);
+            }
+        }
+
+        // 다익스트라 알고리즘 함수
+        function dijkstra(graph, startNode) {
+            const V = graph.length;
+            const distance = new Array(V);
+            const visited = new Array(V);
+
+            for (let i = 0; i < V; i++) {
+                distance[i] = Infinity;
+                visited[i] = false;
+            }
+
+            distance[startNode] = 0;
+
+            for (let count = 0; count < V - 1; count++) {
+                const u = minDistance(distance, visited);
+                visited[u] = true;
+
+                for (let v = 0; v < V; v++) {
+                    if (!visited[v] && graph[u][v] !== 0 && distance[u] !== Infinity && distance[u] + graph[u][v] < distance[v]) {
+                        distance[v] = distance[u] + graph[u][v];
+                    }
+                }
+            }
+
+            return distance.map((val) => (val === Infinity ? "∞" : val));
+        }
+
+        function minDistance(distance, visited) {
+            let min = Infinity,
+                minIndex = -1;
+
+            for (let v = 0; v < distance.length; v++) {
+                if (!visited[v] && distance[v] <= min) {
+                    min = distance[v];
+                    minIndex = v;
+                }
+            }
+
+            return minIndex;
+        }
+
+        function convertArrayToGraph(array) {
+            const graph = [];
+            for (let i = 0; i < array.length; i++) {
+                graph[i] = [];
+                for (let j = 0; j < array[i].length; j++) {
+                    graph[i][j] = parseInt(array[i][j]);
+                }
+            }
+            return graph;
+        }
+    </script>
+</body>
+</html>

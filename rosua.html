@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>DALGO</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <noscript
+      ><link rel="stylesheet" href="assets/css/noscript.css"
+    /></noscript>
+  </head>
+  <body class="is-preload">
+    <!-- Wrapper -->
+    <div id="wrapper">
+      <!-- Header -->
+      <header id="header">
+        <a href="index.html" class="logo">DALGO</a>
+      </header>
+
+      <!-- Nav -->
+      <nav id="nav">
+        <ul class="links">
+          <li><a href="index.html">소개 | Introducion</a></li>
+          <li class="active"><a href="rosua.html">개념 | DALGO</a></li>
+          <li><a href="algo.html">알고리즘 | Algorithm</a></li>
+          <li><a href="imple.html">시뮬레이터 | Simulator</a></li>
+          <li><a href="community.html">소통공간 | Community</a></li>
+        </ul>
+       
+      </nav>
+
+      <!-- Main -->
+      <div id="main">
+        <!-- Post -->
+        <h2>개념</h2>
+        				<dl>
+                  <p><dt><h4>링크-상태 라우팅</h4></dt>
+                    <dd><p>- 링크 상태 정보를 모든 라우터에게 전달해 최단 경로 트리를 구성하는 라우팅 프로토콜 알고리즘이다.
+                      <br>- Network에 대한 전반적인 정보(Topology, path)를 가지고 라우터와 라우터 간 가능성 있는 모든 경로 정보를 교환한다.
+                      <br>- 거리와 대역폭에 따라 경로를 계산하고 어떤 링크의 변화가 있는 경우만 정보를 전달하는 방식을 취한다. 
+                      <br> <br> 
+
+                      <p><dt><h4>링크-상태 데이터베이스</h4></dt>
+                        <dd><p>- 링크 상태 라우팅을 사용하여 최소비용 트리를 작성하기 위해  각 노드는 각 링크의 상태를 알아야 하기 때문에 <br> 네트워크의 완전한 맵(map)이 필요하다.
+                          <br> - 링크의 상태 집합을 링크-상태 데이터베이서(LSDB, link-state database)라 부른다.
+                          <br>- 모든 인터넷에 대해 LSDB는 하나만 존재한다. <br>- 각 노드는 최소비용 트리를 작성하기 위해 이것의 복사본을 가지고 있어야 한다. <br>
+                          <br><img src="images/1111.jpg" alt=""/>
+                          <br><br> LSDB는 플러딩(flooding)이라는 과정을 통해 가능하다.
+                          <br>각 노드는 인사 메시지를 서로 직접 연결된 인접한 이웃들에게 노드의 정보와 링크의 비용 정보의 두 가지 정보를 모으기 위해 전송한다. 
+                          <br> 이 두 가지 정보의 조합을 LS 패킷(LSP)라고 부른다. <br> 노드가 LSP를 인터페이스의 하나로부터 전송받을 때 LSP와 이미 가지고 있던 복사본을 비교한다. 
+                          <br> 만약 새로 도착된 LSP가 시퀀스 번호를 검색하여 기존의 것보다 오래되었다면, 새로 받은 LSP를 차단한다. <br>만약 LSP가 더 새롭거나 처음 도착했다면, 노드는 기존에 가지고 있던 오래된 LSP를 폐기한다. 
+                          <br> 그리고 새로 전달받은 것을 보관한다. 그런 다음 LSP의 복사본을 그 LSP를 보낸 노드를 제외하고 각 인터페이스의 외부로 전송한다. <br> 모든 새로운 LSP들이 도착한 후에 각 노드들은 종합적인 LSDB를 작성한다.
+                          <br><br><img src="images/2222.jpg" alt=""/><br></p>
+                          
+                          <p><dt><h4>"이때 공유된 LSDB를 사용하여 최소비용 트리를 작성하기 위해서, 각 노드는 다익스트라(Dijkstra) 알고리즘을 사용해야만 한다."</h4></dt><br>
+                         
+
+                    <p><dt><h4>최소 비용 라우팅</h4></dt>
+                      <dd><p>- 가중치 그래프로 인터넷을 모델링할 때, 근원지 라우터부터 목적지 라우터까지의 최적 경로를 표현하는 방법 중 하나이다.
+                        <br>- 두 라우터 사이의 최소 비용(least cost)를 찾는 것이다.
+                        <br>- 위에 그림에서 A와 E의 최선 경로는 A-B-E라는 것을 알 수 있다. <br>- 각 라우터는 최소 비용 경로를 찾아 라우팅해야 한다.
+                        <br><br><img src="images/가중치.jpg" alt=""/></p>
+
+    
+		    </p></dd>
+
+                      <p><dt><br><h4>최소 비용 트리</h4></dt><dd>
+                        <p>
+                          - 루트로부터 다른 모든 노드들의 최소 비용으로 방문하는 트리이다.
+                          <br>- N개의 라우터가 있다면 각 라우터는 자신만의 최소비용 트리를 가진다.
+                          <br>- 루트와 다른 노드 사이의 가장 짧은 경로를 구하기 위해 모든 다른 노드들을 방문하는 트리이다.
+                          <br><br>
+                        <img src="images/최소비용.jpg" alt=""/></p>
+                        위의 그림은 위에 가중치 그래프에서 갖는 7개의 최소 비용 트리이다.<br>
+                      <dd>
+
+
+                                
+
+                               
+					</dl>
+        
+        </section>
+      </div>
+
+      
+
+      <!-- Copyright -->
+      <div id="copyright">
+        <ul>
+          <li>comedu</li>
+          <li>DALGO</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/jquery.scrollex.min.js"></script>
+    <script src="assets/js/jquery.scrolly.min.js"></script>
+    <script src="assets/js/browser.min.js"></script>
+    <script src="assets/js/breakpoints.min.js"></script>
+    <script src="assets/js/util.js"></script>
+    <script src="assets/js/main.js"></script>
+  </body>
+</html>
