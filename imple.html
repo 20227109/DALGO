@@ -280,11 +280,12 @@
 
                     drawTree(newPath, newDistances, selectedArrayName);
                 }
-
+                
+                //최단거리 계산
                 function dijkstra(graph, start) {
-                    const dist = {};
-                    const path = {};
-                    const visited = {};
+                    const dist = {}; // 시작 노드로부터 각 노드까지의 거리를 저장
+                    const path = {}; // 최단 경로 상에서 각 노드로 연결되는 이전 노드를 저장
+                    const visited = {}; //각 노드가 방문되었는지 여부를 추적
 
                     for (const vertex in graph) {
                         dist[vertex] = Infinity;
@@ -292,16 +293,18 @@
                         visited[vertex] = false;
                     }
 
-                    dist[start] = 0;
+                    dist[start] = 0; //시작노드는 0으로 설정
 
                     for (let i = 0; i < arrayCount - 1; i++) {
-                        const u = findMinDistVertex(dist, visited);
-                        visited[u] = true;
+                        const u = findMinDistVertex(dist, visited);  //아직 방문되지 않은 노드 중에서 가장 짧은 거리를 가진 노드를 선택 = u.
 
-                        for (const v in graph[u]) {
-                            if (!visited[v] && dist[u] + graph[u][v] < dist[v]) {
+                        visited[u] = true; //그 선택된 노드u를 방문한걸로 표시
+                        
+                        // 선택된 노드에서 인접한 모든 노드에 대해 거리 갱신
+                        for (const v in graph[u]) {  //선택된 노드 u에서 인접한 모든 노드 v 순회
+                            if (!visited[v] && dist[u] + graph[u][v] < dist[v]) {  //현재 경로를 통해 노드 v까지의 거리가 더 짧은지를 확인
                                 dist[v] = dist[u] + graph[u][v];
-                                path[v] = u;
+                                path[v] = u; //거리 갱신하고 path에 최단 경로 기록
                             }
                         }
                     }
@@ -309,20 +312,22 @@
                     return { distances: dist, path };
                 }
 
+                //현재까지 최단 거리를 가진 노드를 찾는 함수
                 function findMinDistVertex(dist, visited) {
-                    let minDist = Infinity;
-                    let minVertex = null;
+                    let minDist = Infinity;  //현재까지 발견한 최단 거리의 최소값을 저장
+                    let minVertex = null; //최단 거리를 가진 노드를 저장
 
-                    for (const vertex in dist) {
+                    for (const vertex in dist) {  //객체에 저장된 모든 노드를 순회 (dist는 각 노드에 대한 현재까지의 최단 거리를 저장중)
                         if (!visited[vertex] && dist[vertex] < minDist) {
                             minDist = dist[vertex];
-                            minVertex = vertex;
+                            minVertex = vertex;  
                         }
                     }
 
-                    return minVertex;
+                    return minVertex; //최단 거리 노드 반환
                 }
 
+                //얻은 최단경로를 문자열 형태로 반환
                 function getPathInfo(vertex, path) {
                     if (path[vertex] === null) {
                         return `${vertex}->${vertex}`;
@@ -339,34 +344,36 @@
                     return `${vertex}->${current}${pathString}`;
                 }
 
+                //노드랑 간선 그리는 함수
                 function drawTree(path, distances, root) {
                     const canvas = document.getElementById('treeCanvas');
                     const ctx = canvas.getContext('2d');
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);  //캔버스 초기화 (이전꺼 있으면 지움)
 
-                    const nodeRadius = 20;
-                    const positions = calculateNodePositions(Object.keys(path), canvas.width, canvas.height, nodeRadius);
+                    const nodeRadius = 20;  //각 노드의 반지름
+                    const positions = calculateNodePositions(Object.keys(path), canvas.width, canvas.height, nodeRadius);  //각 노드들의 위치 반환 (원형으로)
 
                     ctx.font = '16px Arial';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-
+                
+                    //간선그리기
                     for (const node in path) {
                         if (path[node] !== null) {
                             ctx.beginPath();
                             ctx.moveTo(positions[node].x, positions[node].y);
-                            ctx.lineTo(positions[path[node]].x, positions[path[node]].y);
+                            ctx.lineTo(positions[path[node]].x, positions[path[node]].y);  //간선그림 (노드 - 부모노드 연결)
                             ctx.stroke();
-                            const midX = (positions[node].x + positions[path[node]].x) / 2;
-                            const midY = (positions[node].y + positions[path[node]].y) / 2;
+                            const midX = (positions[node].x + positions[path[node]].x) / 2;  //간선 중간 위치에 거리 값 표시
+                            const midY = (positions[node].y + positions[path[node]].y) / 2;  //간선 중간 위치에 거리 값 표시
                             ctx.fillText(distances[node], midX, midY - 10);
                         }
                     }
 
                     for (const node in positions) {
                         ctx.beginPath();
-                        ctx.arc(positions[node].x, positions[node].y, nodeRadius, 0, 2 * Math.PI);
-                        ctx.fillStyle = node === root ? 'red' : 'white';
+                        ctx.arc(positions[node].x, positions[node].y, nodeRadius, 0, 2 * Math.PI);  //노드의 원형 그림
+                        ctx.fillStyle = node === root ? 'red' : 'white'; //루트노드이면 red로, 아니라면 기존 white 그대로
                         ctx.fill();
                         ctx.stroke();
                         ctx.fillStyle = 'black';
@@ -375,20 +382,20 @@
                 }
 
                 function calculateNodePositions(nodes, canvasWidth, canvasHeight, nodeRadius) {
-                    const positions = {};
+                    const positions = {}; //각 노드의 위치 정보를 저장
                     const centerX = canvasWidth / 2;
-                    const centerY = canvasHeight / 2;
-                    const radius = Math.min(centerX, centerY) - nodeRadius * 2;
+                    const centerY = canvasHeight / 2;  //캔버스의 중심 좌표
+                    const radius = Math.min(centerX, centerY) - nodeRadius * 2;  //원의 반지름
 
-                    for (let i = 0; i < nodes.length; i++) {
-                        const angle = (i / nodes.length) * 2 * Math.PI;
+                    for (let i = 0; i < nodes.length; i++) {   //각 노드의 좌표를 계산
+                        const angle = (i / nodes.length) * 2 * Math.PI;  //각 노드가 원주 위에 위치할 각도
                         positions[nodes[i]] = {
                             x: centerX + radius * Math.cos(angle),
-                            y: centerY + radius * Math.sin(angle)
+                            y: centerY + radius * Math.sin(angle)  //주어진 각도에서의 x,y좌표를 계산
                         };
                     }
 
-                    return positions;
+                    return positions;  //그래프를 그릴 때 각 노드의 위치를 결정
                 }
             </script>
         </div>
