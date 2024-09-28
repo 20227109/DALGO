@@ -37,8 +37,11 @@
         #matrix-container,
         #new-matrix-container {
             border: 1px solid #ffffff;
-            padding: 10px;
-            display: inline-block;
+        padding: 10px;
+        display: block; /* inline-block을 block으로 변경 */
+        width: fit-content; /* 테이블 크기에 맞춤 */
+        margin: 0 auto; /* 수평 가운데 정렬 */
+        text-align: center; /* 내부 텍스트 중앙 정렬 */
         }
 
         table {
