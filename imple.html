@@ -107,9 +107,11 @@
                     <input type="number" id="arrayCount" placeholder="1,2,3..">
                     <button onclick="createArrays()">Go</button>
                 </label>
-                <div style="display: inline-block; margin-left: 30px;">
+                <div style="display: inline-block;">
                     <label for="fileUpload">파일 업로드  
                     <input type="file" id="fileUpload" accept=".json, .csv" onchange="handleFileUpload(event)">
+                    <button style="padding: 1px 10px; font-size: 12px;" onclick="showCaution()">Caution</button>
+                    </label>
                     </div>
                 <div id="arraysContainer"></div>
     
@@ -139,6 +141,19 @@
                 
                 <script src="your-script.js"></script>
                 <script>
+                function showCaution() {
+                    alert(
+                        " (예시) \n" +
+                        " 만들고 싶은 노드의 개수가 3개일 때, \n\n" +
+                        " JSON 파일 형식 :\n" +
+                        "{\n" +
+                        "  \" A \" : {\" A \" : 0, \" B \" : 4, \" C \" : 2 },\n" +
+                        "  \" B \" : {\" A \" : 4, \" B \" : 0, \" C \" : 1 },\n" +
+                        "  \" C \" : {\" A \" : 2, \" B \" : 1, \" C \" : 0 },\n" +
+                        "}\n\n" +
+                        "저장 방법 : ' 파일이름 . json ' 로 저장"
+                    );
+                }
                     let graph = {};
                     let arrayCount = 0;
                     let step = 0;
